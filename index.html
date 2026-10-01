@@ -1,0 +1,3354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="Productivity Hub - Aplikasi manajemen tugas vintage dengan mode Active Recall, timer fokus pomodoro, musik lofi native, rak arsip buku perpustakaan kayu, dan jurnal reflektif.">
+  <title>Productivity Hub - Mindful Productivity</title>
+
+  <!-- Pasang konfigurasi PWA di dalam tag <head> index.html -->
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22Productivity%20Hub%22%2C%22short_name%22%3A%22ProdHub%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%230f766e%22%7D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ProductivityHub">
+
+  <!-- Google Fonts: Newsreader (Vintage Editorial Serif) & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       VINTAGE COLOR SYSTEM & DESIGN TOKENS
+       Palet Utama: #c8b99a, #5c3a19, #886351, #d1a473, #decca9
+       Aksen Rak Buku Perpustakaan: Sepia, Burgundy, Forest Green, Mustard & Gold
+       ========================================================================== */
+    :root {
+      --walnut: #5c3a19;          /* Deep rich walnut ink */
+      --walnut-dark: #41260e;
+      --cocoa: #886351;           /* Warm terracotta sepia */
+      --leather: #d1a473;         /* Caramel leather accent */
+      --leather-soft: #f2e4d2;
+      --sand: #c8b99a;            /* Vintage bookcloth / brass */
+      --parchment: #decca9;       /* Aged parchment cream */
+      
+      --paper-bg: #f9f4ea;        /* Authentic paper sheet */
+      --paper-card: #fdfbf7;      /* Clean card surface */
+      --paper-border: #e3d5be;    /* Subtle vintage border */
+      --paper-border-dark: #bba785;
+      
+      --ink-dark: #322012;        /* Dark brown fountain ink */
+      --ink-muted: #6e5845;       /* Muted brown body */
+      --ink-faint: #98826d;       /* Faint annotations */
+      
+      /* Bookshelf & Antique Leather Book Colors */
+      --burgundy: #5e1a22;        /* Antique deep burgundy leather */
+      --forest: #1c3d25;          /* Vintage dark forest green */
+      --sepia-dark: #482f1b;      /* Warm aged sepia saddle */
+      --mustard: #a67922;         /* Retro mustard yellow */
+      --gold: #d4af37;            /* Embossed gold foil */
+      --gold-foil: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #aa8012 100%);
+      --wood-plank: linear-gradient(180deg, #53331b 0%, #3e2412 55%, #2a160a 100%);
+      
+      --accent-star: #c07d2b;
+      --recall-purple: #6a4959;
+      --recall-bg: #f4ecf0;
+      --recall-border: #d4b8c5;
+      
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      
+      --shadow-paper: 0 4px 16px rgba(70, 42, 17, 0.07);
+      --shadow-card: 0 6px 20px rgba(70, 42, 17, 0.1);
+      
+      --font-serif: 'Newsreader', Garamond, 'Times New Roman', serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      --bottom-bar-height: 72px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    input, textarea, select {
+      user-select: auto;
+      font-family: inherit;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: #f1f5f9;
+      color: var(--ink-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Container Smartphone Tanpa Frame / Bezel */
+    .app-viewport {
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      height: 100dvh;
+      background-color: var(--paper-bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border: none;
+    }
+
+    @media (min-width: 421px) {
+      .app-viewport {
+        height: 94vh;
+        max-height: 900px;
+        border-radius: 20px;
+        border: none !important;
+        box-shadow: 0 18px 45px -10px rgba(60, 36, 14, 0.18), 0 2px 10px rgba(60, 36, 14, 0.06);
+      }
+    }
+
+    .app-viewport::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(rgba(136, 99, 81, 0.05) 1px, transparent 0),
+        linear-gradient(180deg, rgba(222, 204, 169, 0.15) 0%, transparent 100%);
+      background-size: 20px 20px, 100% 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header */
+    .app-header {
+      position: relative;
+      z-index: 10;
+      padding: 16px 20px 12px;
+      background: #fbf7ee;
+      border-bottom: 2px solid var(--paper-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .header-greeting-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-date {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--cocoa);
+    }
+
+    .header-title {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--walnut);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #f6eee0;
+      border: 1px dashed var(--paper-border-dark);
+      padding: 5px 11px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--walnut);
+    }
+
+    .header-badge svg {
+      width: 14px;
+      height: 14px;
+      color: var(--leather);
+    }
+
+    /* Main Area */
+    .app-main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 18px calc(var(--bottom-bar-height) + 20px);
+      position: relative;
+      z-index: 1;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-main::-webkit-scrollbar {
+      width: 5px;
+    }
+    .app-main::-webkit-scrollbar-thumb {
+      background: var(--sand);
+      border-radius: 4px;
+    }
+
+    .tab-page {
+      display: none;
+      animation: vintageFadeIn 0.22s ease-out;
+    }
+
+    .tab-page.active {
+      display: block;
+    }
+
+    @keyframes vintageFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .vintage-card {
+      background: var(--paper-card);
+      border: 1px solid var(--paper-border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-paper);
+      position: relative;
+    }
+
+    .vintage-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--parchment), var(--leather), var(--sand));
+      border-top-left-radius: var(--radius-md);
+      border-top-right-radius: var(--radius-md);
+    }
+
+    .vintage-title {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--walnut);
+      line-height: 1.2;
+    }
+
+    .vintage-sub {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      margin-top: 3px;
+      margin-bottom: 12px;
+    }
+
+    /* ==========================================================================
+       TAB 1: TUGAS
+       ========================================================================== */
+    .task-stats-card {
+      background: #5c3a19;
+      background-image: linear-gradient(135deg, #5c3a19 0%, #6f4720 70%, #886351 100%);
+      color: #faf5eb;
+      border: 1px solid #442a12;
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(92, 58, 25, 0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .stats-title {
+      font-family: var(--font-serif);
+      font-size: 0.88rem;
+      font-style: italic;
+      color: var(--parchment);
+    }
+
+    .stats-counter {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #d1a473, #fae2b8);
+      border-radius: var(--radius-full);
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .stats-quote {
+      font-family: var(--font-serif);
+      font-size: 0.82rem;
+      font-style: italic;
+      color: #edd9be;
+      line-height: 1.35;
+    }
+
+    .quick-add-section {
+      background: var(--paper-card);
+      border: 1.5px solid var(--paper-border-dark);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-paper);
+    }
+
+    .quick-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .quick-task-input {
+      flex: 1;
+      background: #fffefb;
+      border: 1px solid var(--sand);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      color: var(--ink-dark);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .quick-task-input:focus {
+      border-color: var(--walnut);
+      box-shadow: 0 0 0 2px rgba(209, 164, 115, 0.25);
+    }
+
+    .btn-add-primary {
+      background: var(--walnut);
+      color: #fffdf9;
+      border: 1px solid var(--walnut-dark);
+      border-radius: var(--radius-sm);
+      padding: 0 16px;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(92, 58, 25, 0.2);
+      transition: all 0.15s;
+    }
+    .btn-add-primary:hover { background: var(--walnut-dark); }
+    .btn-add-primary:active { transform: scale(0.96); }
+
+    .add-options-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px dashed var(--paper-border);
+      padding-top: 10px;
+    }
+
+    .options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .difficulty-selector { display: flex; gap: 5px; }
+
+    .difficulty-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-right: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .diff-pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--paper-border-dark);
+      background: #fbf6ec;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .diff-pill.active { background: var(--cocoa); color: #ffffff; border-color: var(--cocoa); }
+    .diff-pill[data-val="Mudah"].active { background: #467355; border-color: #467355; }
+    .diff-pill[data-val="Sedang"].active { background: #aa752c; border-color: #aa752c; }
+    .diff-pill[data-val="Susah"].active { background: #9d382c; border-color: #9d382c; }
+
+    .vintage-checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--ink-dark);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      background: #f7efe1;
+      border: 1px solid var(--sand);
+      transition: all 0.15s;
+    }
+    .vintage-checkbox-label input[type="checkbox"] { accent-color: var(--walnut); width: 14px; height: 14px; cursor: pointer; }
+    .recall-highlight { background: var(--recall-bg); border-color: var(--recall-border); color: var(--recall-purple); }
+
+    .filter-wrapper { margin-bottom: 14px; }
+    .filter-header-label {
+      font-family: var(--font-serif);
+      font-size: 0.74rem;
+      font-style: italic;
+      color: var(--ink-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-stamp {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--sand);
+      background: #fbf8f2;
+      color: var(--ink-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .filter-stamp:hover { background: #f4ecdc; color: var(--walnut); }
+    .filter-stamp.active {
+      background: var(--walnut);
+      color: #fffcf7;
+      border: 1px solid var(--walnut);
+      box-shadow: 0 2px 6px rgba(92, 58, 25, 0.18);
+    }
+
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+    .task-card {
+      background: #ffffff;
+      border: 1px solid var(--paper-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: var(--shadow-paper);
+      position: relative;
+      transition: all 0.22s;
+    }
+    .task-card:hover { border-color: var(--sand); transform: translateY(-1px); }
+
+    .task-checkbox-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      border: 2px solid var(--sand);
+      background: #fffdfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.18s;
+    }
+    .task-checkbox-box svg { width: 14px; height: 14px; color: #ffffff; opacity: 0; transform: scale(0.4); transition: all 0.18s; }
+    .task-card.completed { background: #f8f4ec; border-color: #e5dac9; opacity: 0.58; }
+    .task-card.completed .task-checkbox-box { background: var(--walnut); border-color: var(--walnut); }
+    .task-card.completed .task-checkbox-box svg { opacity: 1; transform: scale(1); }
+    .task-card.completed .task-text { text-decoration: line-through; color: var(--ink-faint); }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-text { font-size: 0.92rem; font-weight: 600; color: var(--ink-dark); line-height: 1.35; word-break: break-word; }
+    .task-badges-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+
+    .task-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--paper-border);
+      background: #fbf7ee;
+      color: var(--cocoa);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .badge-priority { background: #fcf1dc; border-color: #ebcca1; color: #9c6014; font-weight: 700; }
+    .badge-easy { background: #edf7f0; border-color: #c9e3d1; color: #3b6c4b; }
+    .badge-medium { background: #fdf6ea; border-color: #f1dbb7; color: #9b691a; }
+    .badge-hard { background: #fbeeed; border-color: #eac5c2; color: #9b372c; }
+    .badge-recall { background: var(--recall-bg); border: 1px solid var(--recall-border); color: var(--recall-purple); font-weight: 700; cursor: pointer; }
+
+    .task-actions { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+    .btn-task-del {
+      background: none;
+      border: none;
+      color: var(--sand);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-task-del:hover { color: #a8382b; background: #faeceb; }
+
+    .vintage-empty-state { text-align: center; padding: 34px 16px; color: var(--ink-muted); }
+    .empty-state-quill { font-size: 2.2rem; margin-bottom: 8px; opacity: 0.75; }
+    .empty-state-title { font-family: var(--font-serif); font-size: 1.15rem; color: var(--walnut); margin-bottom: 4px; }
+    .empty-state-desc { font-size: 0.8rem; color: var(--ink-muted); }
+
+    /* ==========================================================================
+       TAB 2: FOKUS & LO-FI
+       ========================================================================== */
+    .pomo-vintage-card {
+      background: var(--paper-card);
+      border: 1.5px solid var(--paper-border-dark);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px 18px;
+      text-align: center;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .active-recall-banner {
+      display: none;
+      background: var(--recall-bg);
+      border: 1.5px dashed var(--recall-border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .active-recall-banner.visible { display: block; }
+    .recall-banner-title {
+      font-family: var(--font-serif);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--recall-purple);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .recall-banner-sub { font-size: 0.74rem; color: var(--ink-muted); margin-top: 2px; }
+
+    .pomo-mode-selector {
+      display: flex;
+      background: #f5edde;
+      padding: 4px;
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
+      border: 1px solid var(--paper-border);
+    }
+    .pomo-mode-btn {
+      flex: 1;
+      padding: 8px 6px;
+      font-family: var(--font-serif);
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--cocoa);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .pomo-mode-btn.active {
+      background: #ffffff;
+      color: var(--walnut);
+      box-shadow: 0 2px 6px rgba(92, 58, 25, 0.1);
+    }
+
+    .flexible-time-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      background: #faf4e8;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--sand);
+    }
+    .time-stepper-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--paper-border-dark);
+      background: #ffffff;
+      color: var(--walnut);
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .time-stepper-btn:active { transform: scale(0.92); background: #f3e8d6; }
+    .time-current-badge {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--walnut);
+      background: #ffffff;
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--leather);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-preset-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      font-family: var(--font-serif);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--sand);
+      background: #ffffff;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-chip.active { background: var(--leather); color: #ffffff; border-color: var(--leather); font-weight: 700; }
+
+    .timer-circle-box {
+      position: relative;
+      width: 210px;
+      height: 210px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .timer-circle-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+    .timer-track-circle { fill: none; stroke: #ebdfcd; stroke-width: 9; }
+    .timer-fill-circle {
+      fill: none;
+      stroke: var(--leather);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-dasharray: 565.48;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.8s linear, stroke 0.3s;
+    }
+    .timer-inner-info { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .timer-time-text { font-family: var(--font-serif); font-size: 3.3rem; font-weight: 700; color: var(--walnut); line-height: 1; letter-spacing: -0.02em; }
+    .timer-label-text { font-family: var(--font-serif); font-size: 0.82rem; font-style: italic; color: var(--cocoa); margin-top: 4px; }
+
+    /* Thumb Controls */
+    .thumb-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+    .btn-thumb-main {
+      flex: 1.4;
+      height: 56px;
+      border-radius: 28px;
+      background: var(--walnut);
+      color: #fffdf8;
+      border: 1px solid var(--walnut-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(92, 58, 25, 0.28);
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-thumb-main:active { transform: scale(0.96); }
+    .btn-thumb-reset {
+      flex: 1;
+      height: 56px;
+      border-radius: 28px;
+      background: #f7efe2;
+      border: 1.5px solid var(--paper-border-dark);
+      color: var(--walnut);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-thumb-reset:active { transform: scale(0.96); background: #ebddc7; }
+    .btn-thumb-skip {
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      background: #ffffff;
+      border: 1.5px solid var(--sand);
+      color: var(--cocoa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    /* Lo-Fi Station */
+    .lofi-station-card {
+      background: #faf4e8;
+      border: 1.5px solid var(--paper-border-dark);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: left;
+      margin-top: 14px;
+    }
+    .lofi-station-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .lofi-title-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-serif);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--walnut);
+    }
+    .vinyl-icon { display: inline-block; }
+    .vinyl-icon.spinning { animation: spinVinyl 3.5s linear infinite; }
+    @keyframes spinVinyl { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .btn-lofi-toggle {
+      font-family: var(--font-serif);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--walnut);
+      background: #ffffff;
+      color: var(--walnut);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s;
+    }
+    .btn-lofi-toggle.playing { background: var(--walnut); color: #ffffff; box-shadow: 0 3px 10px rgba(92, 58, 25, 0.25); }
+
+    .lofi-track-selector {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+      margin-bottom: 8px;
+    }
+    .lofi-track-selector::-webkit-scrollbar { display: none; }
+    .lofi-track-pill {
+      font-family: var(--font-serif);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--sand);
+      background: #ffffff;
+      color: var(--ink-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .lofi-track-pill.active { background: var(--leather); color: #ffffff; border: 1px solid var(--leather); font-weight: 700; }
+    .lofi-track-desc { font-size: 0.72rem; font-style: italic; color: var(--ink-muted); }
+
+    .anti-distraction-banner {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      background: linear-gradient(135deg, #fffcf7 0%, #fbf4e6 100%);
+      border: 1.5px solid var(--leather);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      box-shadow: 0 6px 20px rgba(92, 58, 25, 0.18);
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(-80px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .anti-distraction-banner.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .anti-distraction-text { font-family: var(--font-serif); font-size: 0.82rem; font-style: italic; color: var(--walnut); line-height: 1.35; flex: 1; }
+
+    /* ==========================================================================
+       TAB 4: DIGITAL ARCHIVE (KLASIK WOODEN BOOKSHELF & LEATHER-BOUND BOOKS)
+       ========================================================================== */
+    .bookshelf-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .bookshelf-frame {
+      background: linear-gradient(180deg, #382011 0%, #29160a 100%);
+      border: 3px solid #231207;
+      border-radius: var(--radius-md);
+      padding: 14px 12px 0;
+      box-shadow: 0 10px 30px rgba(40, 20, 8, 0.4), inset 0 0 25px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .bookshelf-backdrop {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(212, 175, 55, 0.04) 1px, transparent 0);
+      background-size: 14px 14px;
+      pointer-events: none;
+    }
+
+    /* Shelf Tier */
+    .shelf-tier {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .shelf-tier-title {
+      font-family: var(--font-serif);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #dfcaa7;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    /* Books Row Standing on Shelf */
+    .shelf-books-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 6px 0;
+      scrollbar-width: none;
+      min-height: 140px;
+    }
+    .shelf-books-row::-webkit-scrollbar { display: none; }
+
+    /* Antique Wooden Shelf Plank Ledge */
+    .shelf-wooden-plank {
+      height: 14px;
+      background: var(--wood-plank);
+      border-radius: 2px;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-top: 1px solid #7a4d29;
+      position: relative;
+      margin-top: -2px;
+    }
+
+    .shelf-wooden-plank::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 10px;
+      right: 10px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.45);
+      filter: blur(3px);
+    }
+
+    /* Leather-Bound Antique Book Component */
+    .archive-book {
+      position: relative;
+      width: 48px;
+      min-width: 48px;
+      height: 125px;
+      border-radius: 4px 4px 1px 1px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 3px 6px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.45);
+      flex-shrink: 0;
+    }
+
+    /* Book hover/tap pull-out effect */
+    .archive-book:hover, .archive-book:active {
+      transform: translateY(-16px) scale(1.05);
+      box-shadow: 0 16px 26px rgba(0, 0, 0, 0.55), 0 0 12px rgba(212, 175, 55, 0.3);
+      z-index: 10;
+    }
+
+    /* Color variations for antique leather */
+    .archive-book.burgundy {
+      background: linear-gradient(90deg, #3d1015 0%, #5e1a22 45%, #75222b 75%, #421217 100%);
+      border: 1px solid #7a2833;
+    }
+    .archive-book.forest {
+      background: linear-gradient(90deg, #112817 0%, #1c3d25 45%, #255231 75%, #132b1a 100%);
+      border: 1px solid #285734;
+    }
+    .archive-book.sepia {
+      background: linear-gradient(90deg, #301f11 0%, #482f1b 45%, #5e3f26 75%, #342113 100%);
+      border: 1px solid #634329;
+    }
+    .archive-book.mustard {
+      background: linear-gradient(90deg, #6e4e14 0%, #a67922 45%, #c09033 75%, #735317 100%);
+      border: 1px solid #b8882b;
+    }
+    .archive-book.navy {
+      background: linear-gradient(90deg, #121c29 0%, #1d2c3f 45%, #2b3f59 75%, #15202e 100%);
+      border: 1px solid #2f4562;
+    }
+
+    /* Embossed Gold Spine Details */
+    .book-rib-top, .book-rib-bottom {
+      width: 82%;
+      height: 4px;
+      border-top: 1px solid rgba(255, 215, 0, 0.65);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+      background: rgba(212, 175, 55, 0.25);
+      border-radius: 1px;
+    }
+
+    .book-spine-title {
+      font-family: var(--font-serif);
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #f7e7c4;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-height: 82px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .archive-book.mustard .book-spine-title {
+      color: #2b1c09;
+      text-shadow: none;
+    }
+
+    /* Bookmark Ribbon hanging down */
+    .book-ribbon {
+      position: absolute;
+      bottom: -10px;
+      width: 7px;
+      height: 12px;
+      background: #9b2c2c;
+      border-radius: 0 0 2px 2px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .archive-book.forest .book-ribbon { background: #d4af37; }
+    .archive-book.sepia .book-ribbon { background: #c54228; }
+    .archive-book.mustard .book-ribbon { background: #382414; }
+
+    /* Library Search & Filter Bar */
+    .library-search-box {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .library-search-input {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid var(--sand);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      color: var(--ink-dark);
+      outline: none;
+    }
+    .library-search-input:focus { border-color: var(--walnut); }
+
+    /* ==========================================================================
+       TAB 3: JURNAL
+       ========================================================================== */
+    .journal-prompt-box {
+      background: #fffdf9;
+      border: 1.5px dashed var(--sand);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .journal-prompt-tag { font-family: var(--font-serif); font-size: 0.74rem; font-style: italic; color: var(--leather); font-weight: 700; margin-bottom: 4px; }
+    .journal-prompt-quote { font-family: var(--font-serif); font-size: 0.96rem; color: var(--walnut); line-height: 1.4; }
+
+    .mood-stamp-row { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
+    .mood-stamp-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: #ffffff;
+      border: 1px solid var(--paper-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+    .mood-stamp-btn.selected { border-color: var(--leather); background: #fbf5ec; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(209, 164, 115, 0.2); }
+    .mood-stamp-btn span.emoji { font-size: 1.2rem; }
+    .mood-stamp-btn span.lbl { font-size: 0.65rem; font-weight: 600; color: var(--ink-muted); }
+
+    .vintage-input, .vintage-textarea {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--sand);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      color: var(--ink-dark);
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .vintage-input:focus, .vintage-textarea:focus { border-color: var(--walnut); }
+
+    .journal-card {
+      background: #ffffff;
+      border: 1px solid var(--paper-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-paper);
+    }
+    .journal-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .journal-date-txt { font-family: var(--font-serif); font-size: 0.74rem; font-style: italic; color: var(--cocoa); }
+    .journal-title-txt { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; color: var(--walnut); margin-bottom: 6px; }
+    .journal-content-txt { font-size: 0.84rem; color: var(--ink-muted); line-height: 1.5; white-space: pre-line; word-break: break-word; }
+
+    /* ==========================================================================
+       TAB 5: SETTINGS
+       ========================================================================== */
+    .settings-list {
+      background: #ffffff;
+      border: 1px solid var(--paper-border);
+      border-radius: var(--radius-md);
+      padding: 4px 16px;
+      margin-bottom: 16px;
+    }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed var(--paper-border); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-meta-title { font-family: var(--font-serif); font-size: 0.9rem; font-weight: 600; color: var(--walnut); }
+    .setting-meta-sub { font-size: 0.72rem; color: var(--ink-muted); }
+
+    .switch-wrap { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch-wrap input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; cursor: pointer; inset: 0; background-color: #ddd2bf; border-radius: 24px; transition: 0.25s;
+    }
+    .switch-slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: 0.25s;
+    }
+    input:checked + .switch-slider { background-color: var(--leather); }
+    input:checked + .switch-slider:before { transform: translateX(20px); }
+
+    /* Modals */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(45, 27, 10, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      width: 100%;
+      max-width: 360px;
+      background: #fffdf9;
+      border: 1.5px solid var(--paper-border-dark);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: modalPop 0.22s ease-out;
+    }
+    @keyframes modalPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal-header-icon { font-size: 2.2rem; text-align: center; margin-bottom: 6px; }
+    .modal-title { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--walnut); text-align: center; margin-bottom: 8px; }
+    .modal-text { font-size: 0.82rem; color: var(--ink-muted); line-height: 1.5; text-align: center; margin-bottom: 16px; }
+    .modal-btn-row { display: flex; gap: 8px; }
+
+    /* ==========================================================================
+       BOTTOM NAVIGATION BAR (5 TAB RAMAH JEMPOL: TUGAS, FOKUS, JURNAL, ARSIP, SETTINGS)
+       ========================================================================== */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottom-bar-height);
+      background: #fbf8f2;
+      border-top: 1.5px solid var(--paper-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 6px;
+      z-index: 50;
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-faint);
+      padding: 6px 0;
+      transition: all 0.18s;
+      position: relative;
+    }
+
+    .nav-icon {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      margin-bottom: 2px;
+      transition: all 0.2s;
+    }
+
+    .nav-icon svg {
+      width: 19px;
+      height: 19px;
+      stroke-width: 2;
+    }
+
+    .nav-label {
+      font-family: var(--font-serif);
+      font-size: 0.68rem;
+      font-weight: 600;
+      transition: color 0.18s;
+    }
+
+    .nav-btn.active { color: var(--walnut); }
+    .nav-btn.active .nav-icon {
+      background: #efe4d1;
+      color: var(--walnut);
+      transform: translateY(-2px);
+    }
+    .nav-btn.active .nav-label { color: var(--walnut); font-weight: 700; }
+    .nav-btn.active::after {
+      content: "";
+      position: absolute;
+      bottom: 2px;
+      width: 14px;
+      height: 3px;
+      background: var(--leather);
+      border-radius: var(--radius-full);
+    }
+
+    /* Toast */
+    .supportive-toast {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-40px);
+      background: var(--walnut);
+      color: #fffcf7;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-serif);
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: 0 6px 22px rgba(65, 38, 14, 0.35);
+      border: 1px solid var(--leather);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 90%;
+      white-space: nowrap;
+    }
+    .supportive-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Kontainer Smartphone Tanpa Frame / Bezel Tebal -->
+  <main class="app-viewport" id="appViewport">
+
+    <!-- Header Atas Vintage -->
+    <header class="app-header">
+      <div class="header-greeting-wrapper">
+        <span class="header-date" id="headerDateStr">Kamis, 1 Okt 2026</span>
+        <h1 class="header-title">Productivity Hub</h1>
+      </div>
+      <div class="header-badge" id="headerStatBadge" title="Tugas selesai hari ini">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="headerStatText">0 Selesai</span>
+      </div>
+    </header>
+
+    <!-- Floating Banner Pemberi Semangat di Tengah Fokus (Anti-Distraksi) -->
+    <div class="anti-distraction-banner" id="antiDistractionBanner">
+      <span style="font-size: 1.3rem;">🌿</span>
+      <div class="anti-distraction-text" id="antiDistractionMsg">
+        Tarik napas dalam-dalam... Tetap tenang dan lanjutkan ritmemu.
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <section class="app-main" id="mainContent">
+
+      <!-- ====================================================================
+           TAB 1: TUGAS (TODO LIST FLEKSIBEL & ACTIVE RECALL)
+           ==================================================================== -->
+      <article class="tab-page active" id="tab-tasks">
+        
+        <div class="task-stats-card">
+          <div class="stats-header">
+            <span class="stats-title">Pencapaian Hari Ini</span>
+            <span class="stats-counter" id="taskStatRatio">0 / 0</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="taskProgressBar"></div>
+          </div>
+          <p class="stats-quote" id="taskMotivationalQuote">"Fokus bukanlah tentang melakukan segalanya, tapi tentang memilih yang utama."</p>
+        </div>
+
+        <!-- FORM INPUT CEPAT TUGAS -->
+        <div class="quick-add-section">
+          <div class="quick-input-row">
+            <input type="text" class="quick-task-input" id="quickTaskInput" placeholder="Tulis tugas baru di sini..." maxlength="120" autocomplete="off">
+            <button class="btn-add-primary" id="btnQuickAdd" title="Tambah Tugas">
+              <span>+</span>
+            </button>
+          </div>
+
+          <div class="add-options-panel">
+            <div class="options-row">
+              <div class="difficulty-selector">
+                <span class="difficulty-label">Tingkat:</span>
+                <span class="diff-pill" data-val="Mudah">Mudah</span>
+                <span class="diff-pill active" data-val="Sedang">Sedang</span>
+                <span class="diff-pill" data-val="Susah">Susah</span>
+              </div>
+
+              <label class="vintage-checkbox-label" title="Tampilkan tugas ini di urutan paling atas">
+                <input type="checkbox" id="chkPriority">
+                <span>★ Prioritas</span>
+              </label>
+            </div>
+
+            <div class="options-row">
+              <label class="vintage-checkbox-label recall-highlight" title="Tugas ini memerlukan sesi belajar Pomodoro & catatan Jurnal untuk diselesaikan">
+                <input type="checkbox" id="chkActiveRecall">
+                <span>🧠 Mode Active Recall (Belajar)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB FILTER KATEGORI -->
+        <div class="filter-wrapper">
+          <div class="filter-header-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filter Tampilan:
+          </div>
+          <div class="filter-row" id="taskFiltersRow">
+            <button class="filter-stamp active" data-filter-type="status" data-filter="all">Semua</button>
+            <button class="filter-stamp" data-filter-type="status" data-filter="active">Aktif</button>
+            <button class="filter-stamp" data-filter-type="status" data-filter="completed">Selesai</button>
+            <button class="filter-stamp" data-filter-type="diff" data-filter="Mudah">Mudah</button>
+            <button class="filter-stamp" data-filter-type="diff" data-filter="Sedang">Sedang</button>
+            <button class="filter-stamp" data-filter-type="diff" data-filter="Susah">Susah</button>
+            <button class="filter-stamp" data-filter-type="priority" data-filter="priority">★ Prioritas</button>
+          </div>
+        </div>
+
+        <!-- DAFTAR TUGAS FLEKSIBEL -->
+        <div class="task-list" id="taskListContainer"></div>
+
+        <div class="vintage-empty-state" id="tasksEmptyState" style="display: none;">
+          <div class="empty-state-quill">📜</div>
+          <h3 class="empty-state-title">Semua tugas beres!</h3>
+          <p class="empty-state-desc">Belum ada tugas dalam filter ini. Mulailah menulis di atas.</p>
+        </div>
+
+      </article>
+
+
+      <!-- ====================================================================
+           TAB 2: FOKUS (POMODORO TIMER FLEKSIBEL & LO-FI STATION)
+           ==================================================================== -->
+      <article class="tab-page" id="tab-focus">
+        
+        <div class="pomo-vintage-card">
+          <!-- Banner Penanda Sesi Active Recall -->
+          <div class="active-recall-banner" id="activeRecallSessionBanner">
+            <div class="recall-banner-title">
+              <span>🧠 Sesi Belajar Active Recall</span>
+            </div>
+            <div class="recall-banner-sub" id="recallTaskTitleDisplay">
+              Materi: Sedang memproses...
+            </div>
+          </div>
+
+          <!-- Selector Mode Timer (Fokus, Istirahat Singkat, Istirahat Panjang) -->
+          <div class="pomo-mode-selector" id="pomoModes">
+            <button class="pomo-mode-btn active" data-mode="focus">Fokus</button>
+            <button class="pomo-mode-btn" data-mode="short">Istirahat Singkat</button>
+            <button class="pomo-mode-btn" data-mode="long">Istirahat Panjang</button>
+          </div>
+
+          <!-- PENGATURAN WAKTU FLEKSIBEL SESUKA HATI -->
+          <div class="flexible-time-bar">
+            <button class="time-stepper-btn" id="btnDecreaseMinute" title="Kurangi 5 Menit">−</button>
+            <div class="time-current-badge" id="btnCustomTimeBadge" title="Klik untuk ubah menit sesuka hati">
+              <span id="currentDurationDisplay">25 Menit</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <button class="time-stepper-btn" id="btnIncreaseMinute" title="Tambah 5 Menit">+</button>
+          </div>
+
+          <!-- Chip Preset Cepat Waktu Fleksibel -->
+          <div class="quick-preset-row" id="quickPresetRow"></div>
+
+          <!-- Circular SVG Countdown Timer -->
+          <div class="timer-circle-box">
+            <svg class="timer-circle-svg" viewBox="0 0 200 200">
+              <circle class="timer-track-circle" cx="100" cy="100" r="90"></circle>
+              <circle class="timer-fill-circle" id="timerProgressRing" cx="100" cy="100" r="90"></circle>
+            </svg>
+            <div class="timer-inner-info">
+              <span class="timer-time-text" id="timerDigitsDisplay">25:00</span>
+              <span class="timer-label-text" id="timerModeLabel">Sesi Belajar Fokus</span>
+            </div>
+          </div>
+
+          <!-- TOMBOL KONTROL RAMAH JEMPOL (MULAI, JEDA, RESET) -->
+          <div class="thumb-controls-row">
+            <button class="btn-thumb-reset" id="btnThumbReset" aria-label="Atur Ulang Timer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+              <span>Reset</span>
+            </button>
+
+            <button class="btn-thumb-main" id="btnThumbToggle" aria-label="Mulai atau Jeda">
+              <span id="thumbIconHolder">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              </span>
+              <span id="thumbToggleLabel">Mulai Fokus</span>
+            </button>
+
+            <button class="btn-thumb-skip" id="btnThumbSkip" title="Selesaikan Sesi Sekarang" aria-label="Selesai Sesi">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                <line x1="19" y1="5" x2="19" y2="19"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- STASIUN MUSIK LO-FI TENANG -->
+          <div class="lofi-station-card">
+            <div class="lofi-station-header">
+              <div class="lofi-title-badge">
+                <span class="vinyl-icon" id="vinylRecordIcon">📻</span>
+                <span>Musik Lo-Fi Tenang</span>
+              </div>
+              <button class="btn-lofi-toggle" id="btnToggleLofiMusic">
+                <span id="lofiPlayIcon">▶</span>
+                <span id="lofiBtnText">Putar Musik</span>
+              </button>
+            </div>
+
+            <div class="lofi-track-selector" id="lofiTrackSelector">
+              <button class="lofi-track-pill active" data-track="0">🎵 Chillhop Rhodes</button>
+              <button class="lofi-track-pill" data-track="1">🌧️ Midnight Rain</button>
+              <button class="lofi-track-pill" data-track="2">🔥 Cozy Fireplace</button>
+              <button class="lofi-track-pill" data-track="3">☕ Warm Drone 432Hz</button>
+              <button class="lofi-track-pill" data-track="4">📻 Vintage Tape Arp</button>
+            </div>
+            <div class="lofi-track-desc" id="lofiTrackDesc">
+              Akord electric piano Rhodes hangat berputar lambat dengan desau vinyl lembut.
+            </div>
+          </div>
+        </div>
+
+        <!-- Fokus Stats -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="vintage-card" style="margin-bottom: 0; text-align: center; padding: 12px;">
+            <div style="font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; color: var(--walnut);" id="focusSessionsCount">0</div>
+            <div style="font-size: 0.72rem; color: var(--ink-muted);">Sesi Fokus Hari Ini</div>
+          </div>
+          <div class="vintage-card" style="margin-bottom: 0; text-align: center; padding: 12px;">
+            <div style="font-family: var(--font-serif); font-size: 1.4rem; font-weight: 700; color: var(--walnut);" id="focusMinutesCount">0 mnt</div>
+            <div style="font-size: 0.72rem; color: var(--ink-muted);">Total Waktu Fokus</div>
+          </div>
+        </div>
+
+      </article>
+
+
+      <!-- ====================================================================
+           TAB 3: JURNAL (MIND-NOTE & HASIL ACTIVE RECALL)
+           ==================================================================== -->
+      <article class="tab-page" id="tab-journal">
+
+        <div class="journal-prompt-box">
+          <div class="journal-prompt-tag">✦ Lembar Refleksi</div>
+          <p class="journal-prompt-quote" id="dailyJournalPrompt">"Apa satu hal berharga yang berhasil kamu pahami atau selesaikan hari ini?"</p>
+        </div>
+
+        <div class="vintage-card">
+          <h2 class="vintage-title">Catatan & Evaluasi Harian</h2>
+          <p class="vintage-sub">Tuangkan hasil belajar, evaluasi, atau perenungan.</p>
+
+          <div class="mood-stamp-row" id="moodSelectorGroup">
+            <button type="button" class="mood-stamp-btn selected" data-mood="Tenang" data-emoji="🌿">
+              <span class="emoji">🌿</span>
+              <span class="lbl">Tenang</span>
+            </button>
+            <button type="button" class="mood-stamp-btn" data-mood="Senang" data-emoji="☀️">
+              <span class="emoji">☀️</span>
+              <span class="lbl">Senang</span>
+            </button>
+            <button type="button" class="mood-stamp-btn" data-mood="Fokus" data-emoji="⚡">
+              <span class="emoji">⚡</span>
+              <span class="lbl">Fokus</span>
+            </button>
+            <button type="button" class="mood-stamp-btn" data-mood="Recall" data-emoji="🧠">
+              <span class="emoji">🧠</span>
+              <span class="lbl">Recall</span>
+            </button>
+            <button type="button" class="mood-stamp-btn" data-mood="Syukur" data-emoji="🤎">
+              <span class="emoji">🤎</span>
+              <span class="lbl">Syukur</span>
+            </button>
+          </div>
+
+          <input type="text" class="vintage-input" id="journalTitleInput" placeholder="Judul catatan (opsional)..." maxlength="80">
+          <textarea class="vintage-textarea" id="journalContentInput" rows="3" placeholder="Tuliskan catatan atau evaluasi belajarmu di sini..."></textarea>
+
+          <button class="btn-add-primary" id="btnSaveJournal" style="width: 100%; justify-content: center; padding: 10px;">
+            Simpan ke Jurnal
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 10px;">
+          <h3 style="font-family: var(--font-serif); font-size: 1.1rem; color: var(--walnut);">Arsip Jurnal</h3>
+          <span style="font-size: 0.74rem; color: var(--ink-muted);" id="journalTotalCount">0 Catatan</span>
+        </div>
+
+        <div id="journalListContainer"></div>
+
+      </article>
+
+
+      <!-- ====================================================================
+           TAB 4: ARSIP (DIGITAL ARCHIVE - VINTAGE WOODEN BOOKSHELF)
+           ==================================================================== -->
+      <article class="tab-page" id="tab-archive">
+
+        <div class="vintage-card" style="padding: 14px 16px; margin-bottom: 14px;">
+          <h2 class="vintage-title" style="display: flex; align-items: center; gap: 8px;">
+            <span>📚</span>
+            <span>Bibliotheca Arsip Digital</span>
+          </h2>
+          <p class="vintage-sub" style="margin-bottom: 10px;">
+            Rak buku kayu klasik tempat tersimpannya manuskrip refleksi, hasil belajar Active Recall, dan catatan historis.
+          </p>
+
+          <!-- Search Katalog Perpustakaan -->
+          <div class="library-search-box">
+            <input type="text" class="library-search-input" id="archiveSearchInput" placeholder="Cari buku atau catatan arsip..." autocomplete="off">
+          </div>
+
+          <!-- Filter Kategori Rak -->
+          <div class="filter-row" id="archiveCategoryRow" style="padding-bottom: 2px;">
+            <button class="filter-stamp active" data-archive-cat="all">Semua Buku</button>
+            <button class="filter-stamp" data-archive-cat="recall">Active Recall</button>
+            <button class="filter-stamp" data-archive-cat="journal">Jurnal Refleksi</button>
+            <button class="filter-stamp" data-archive-cat="task">Tugas Tuntas</button>
+          </div>
+        </div>
+
+        <!-- RAK BUKU KAYU KLASIK (WOODEN BOOKSHELF) -->
+        <div class="bookshelf-wrapper">
+          <div class="bookshelf-frame">
+            <div class="bookshelf-backdrop"></div>
+
+            <!-- Rak 1: Manuskrip Belajar & Active Recall -->
+            <div class="shelf-tier" id="shelfTierRecall">
+              <div class="shelf-tier-title">
+                <span>✦ Rak Atas: Sesi Belajar & Active Recall</span>
+                <span id="tierRecallCount" style="color: var(--gold); font-size: 0.65rem;">3 Buku</span>
+              </div>
+              <div class="shelf-books-row" id="booksRowRecall">
+                <!-- Books rendered dynamically via JS -->
+              </div>
+              <div class="shelf-wooden-plank"></div>
+            </div>
+
+            <!-- Rak 2: Jurnal Refleksi & Dokumen Tuntas -->
+            <div class="shelf-tier" id="shelfTierJournals">
+              <div class="shelf-tier-title">
+                <span>✦ Rak Bawah: Volume Jurnal & Riwayat Tuntas</span>
+                <span id="tierJournalCount" style="color: var(--gold); font-size: 0.65rem;">3 Buku</span>
+              </div>
+              <div class="shelf-books-row" id="booksRowJournals">
+                <!-- Books rendered dynamically via JS -->
+              </div>
+              <div class="shelf-wooden-plank"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Panduan Interaksi Rak Buku -->
+        <div style="background: #fbf7ef; border: 1px dashed var(--sand); border-radius: var(--radius-md); padding: 10px 14px; text-align: center;">
+          <p style="font-family: var(--font-serif); font-size: 0.78rem; font-style: italic; color: var(--cocoa);">
+            💡 <b>Petunjuk:</b> Sentuh buku kulit antik di atas rak untuk menariknya keluar dan membaca isi dokumen manuskripnya.
+          </p>
+        </div>
+
+      </article>
+
+
+      <!-- ====================================================================
+           TAB 5: SETTINGS (PENGATURAN)
+           ==================================================================== -->
+      <article class="tab-page" id="tab-settings">
+
+        <div class="vintage-card">
+          <h2 class="vintage-title">Profil & Sapaan</h2>
+          <p class="vintage-sub">Personalisasi nama panggilan Anda.</p>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="vintage-input" id="userNameInput" value="Sobat Fokus" style="margin-bottom: 0;">
+            <button class="btn-add-primary" id="btnSaveName" style="white-space: nowrap;">Simpan</button>
+          </div>
+        </div>
+
+        <div class="settings-list">
+          <div class="setting-row">
+            <div>
+              <div class="setting-meta-title">Alarm Audio Selesai (Beep)</div>
+              <div class="setting-meta-sub">Bunyi beep native saat waktu menyentuh 00:00</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="settingSoundToggle" checked>
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-meta-title">Mute Musik Lo-Fi</div>
+              <div class="setting-meta-sub">Senyapkan seluruh pemutaran musik latar lo-fi</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="settingLofiMuteToggle">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Manajemen Data -->
+        <div class="settings-list">
+          <div class="setting-row" style="cursor: pointer;" id="btnExportData">
+            <div>
+              <div class="setting-meta-title">Cadangkan Data (Export JSON)</div>
+              <div class="setting-meta-sub">Simpan seluruh tugas & jurnal ke file</div>
+            </div>
+            <span style="font-size: 1.1rem; color: var(--leather);">⬇</span>
+          </div>
+
+          <div class="setting-row" style="cursor: pointer;" id="btnClearAllData">
+            <div>
+              <div class="setting-meta-title" style="color: #9d382c;">Reset Semua Data</div>
+              <div class="setting-meta-sub">Hapus riwayat tugas & jurnal</div>
+            </div>
+            <span style="font-size: 1.1rem; color: #9d382c;">🗑</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 12px 0 6px;">
+          <p style="font-family: var(--font-serif); font-size: 0.95rem; color: var(--walnut); font-weight: 600;">Productivity Hub v3.0</p>
+          <p style="font-size: 0.72rem; color: var(--ink-muted);">PWA Aktif • Rak Arsip Buku Kayu Klasik • Dribbble Retro UI</p>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ====================================================================
+         MODAL INSPEKSI BUKU ARSIP DIGITAL (ANTIQUE FOLIO READER)
+         ==================================================================== -->
+    <div class="modal-overlay" id="archiveReaderModal">
+      <div class="modal-box" style="max-width: 380px; background: #fffcf5; border: 2px solid #5a381e;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #d8caa9; padding-bottom: 8px; margin-bottom: 10px;">
+          <span id="readerCategoryBadge" class="task-badge" style="background: #f4ecdc; color: #5a381e; font-weight: 700;">📜 Manuskrip</span>
+          <span id="readerDateText" style="font-family: var(--font-serif); font-size: 0.74rem; font-style: italic; color: var(--cocoa);">1 Okt 2026</span>
+        </div>
+
+        <h3 id="readerTitleText" style="font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--walnut); line-height: 1.25; margin-bottom: 8px;">
+          Judul Buku Arsip
+        </h3>
+
+        <div style="max-height: 220px; overflow-y: auto; background: #faf4e8; border: 1px solid #ebdcc5; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+          <p id="readerContentText" style="font-size: 0.85rem; color: var(--ink-dark); line-height: 1.55; white-space: pre-line; word-break: break-word;">
+            Isi catatan...
+          </p>
+        </div>
+
+        <div class="modal-btn-row">
+          <button class="filter-stamp" id="btnCloseArchiveReader" style="flex: 1;">Tutup Buku</button>
+          <button class="btn-add-primary" id="btnCopyArchiveContent" style="flex: 1.4; justify-content: center;">
+            Salin Catatan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL POPUP AJAKAN REFLEKSI SAAT SESI FOKUS TUNTAS -->
+    <div class="modal-overlay" id="sessionFinishedReflectionModal">
+      <div class="modal-box">
+        <div class="modal-header-icon">🎉</div>
+        <h3 class="modal-title">Sesi Fokus Tuntas!</h3>
+        <p class="modal-text">
+          Selamat! Kamu telah menyelesaikan sesi fokus belajar dengan luar biasa.<br><br>
+          Luangkan 1 menit untuk mengistirahatkan pikiran sejenak dan mencatat <b>evaluasi belajarmu</b> di Tab Jurnal selagi ingatan masih segar.
+        </p>
+
+        <div class="modal-btn-row">
+          <button class="filter-stamp" id="btnDismissReflectionModal" style="flex: 1;">Nanti Saja</button>
+          <button class="btn-add-primary" id="btnGoToJournalReflection" style="flex: 1.6; justify-content: center;">
+            📝 Buka Jurnal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL ACTIVE RECALL PROMPT -->
+    <div class="modal-overlay" id="activeRecallPromptModal">
+      <div class="modal-box">
+        <div class="modal-header-icon">🧠</div>
+        <h3 class="modal-title">Mode Active Recall</h3>
+        <p class="modal-text" id="activeRecallModalDesc">
+          Tugas ini terhubung dengan metode <b>Active Recall</b>! Tugas hanya akan tercentang selesai jika Anda menyelesaikan sesi fokus timer dan menuliskan hasil ingatan materi ke Jurnal.
+        </p>
+
+        <div class="modal-btn-row">
+          <button class="filter-stamp" id="btnCancelRecallModal" style="flex: 1;">Tutup</button>
+          <button class="btn-add-primary" id="btnStartRecallSession" style="flex: 1.5; justify-content: center;">
+            Mulai Sesi Belajar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PENULISAN JURNAL ACTIVE RECALL -->
+    <div class="modal-overlay" id="activeRecallWriteModal">
+      <div class="modal-box" style="max-width: 380px;">
+        <div class="modal-header-icon">📖</div>
+        <h3 class="modal-title">Tulis Hasil Active Recall</h3>
+        <p class="modal-text" style="margin-bottom: 10px;">
+          Sesi fokus selesai! Tuliskan apa saja inti materi yang Anda ingat di bawah ini tanpa membuka catatan:
+        </p>
+
+        <input type="text" class="vintage-input" id="recallTaskTitleInput" readonly style="background: #f7efe1; font-weight: 600;">
+        <textarea class="vintage-textarea" id="recallWriteContent" rows="4" placeholder="Tuliskan ringkasan pemahaman dari ingatan Anda..."></textarea>
+
+        <div class="modal-btn-row">
+          <button class="filter-stamp" id="btnDismissRecallWrite" style="flex: 1;">Nanti Saja</button>
+          <button class="btn-add-primary" id="btnFinishRecallAndTask" style="flex: 1.5; justify-content: center;">
+            Simpan & Selesaikan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         BOTTOM NAVIGATION BAR (5 TAB: TUGAS, FOKUS, JURNAL, ARSIP, SETTINGS)
+         ==================================================================== -->
+    <nav class="bottom-nav" aria-label="Navigasi Utama">
+      <!-- 1. Tugas -->
+      <button class="nav-btn active" data-tab="tab-tasks" id="nav-btn-tasks" aria-label="Tab Tugas">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Tugas</span>
+      </button>
+
+      <!-- 2. Fokus -->
+      <button class="nav-btn" data-tab="tab-focus" id="nav-btn-focus" aria-label="Tab Fokus">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <span class="nav-label">Fokus</span>
+      </button>
+
+      <!-- 3. Jurnal -->
+      <button class="nav-btn" data-tab="tab-journal" id="nav-btn-journal" aria-label="Tab Jurnal">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Jurnal</span>
+      </button>
+
+      <!-- 4. Arsip (Tab Baru: Rak Buku Perpustakaan Kayu Klasik) -->
+      <button class="nav-btn" data-tab="tab-archive" id="nav-btn-archive" aria-label="Tab Arsip Digital">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a2.5 2.5 0 0 1-2.5-2.5z"></path>
+            <path d="M6 6h10"></path>
+            <path d="M6 10h10"></path>
+            <path d="M6 14h7"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Arsip</span>
+      </button>
+
+      <!-- 5. Settings -->
+      <button class="nav-btn" data-tab="tab-settings" id="nav-btn-settings" aria-label="Tab Pengaturan">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- Floating Supportive Notification Toast -->
+    <div class="supportive-toast" id="supportiveToast">
+      <span>✉️</span>
+      <span id="supportiveToastMsg">Tinggal 1 tugas lagi! Semangat!</span>
+    </div>
+
+  </main>
+
+  <!-- ====================================================================
+       LOGIKA JAVASCRIPT MURNI (VANILLA JS)
+       ==================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ----------------------------------------------------------------------
+         Storage Keys & State
+         ---------------------------------------------------------------------- */
+      const STORAGE_KEY_TASKS = 'prodhub_tasks_v2';
+      const STORAGE_KEY_JOURNALS = 'prodhub_journals_v2';
+      const STORAGE_KEY_SETTINGS = 'prodhub_settings_v2';
+      const STORAGE_KEY_FOCUS_STATS = 'prodhub_focus_stats_v2';
+      const STORAGE_KEY_ACTIVE_RECALL = 'prodhub_current_recall_v2';
+      const STORAGE_KEY_ARCHIVES = 'prodhub_archives_v1';
+
+      const defaultSettings = {
+        userName: 'Sobat Fokus',
+        focusDuration: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        soundEnabled: true,
+        lofiMuted: false
+      };
+
+      let tasks = [];
+      let journals = [];
+      let archives = [];
+      let settings = { ...defaultSettings };
+      let focusStats = { sessionsToday: 0, totalMinutes: 0, lastDate: new Date().toDateString() };
+      
+      let currentFilterType = 'status';
+      let currentFilterValue = 'all';
+
+      // Active Recall Task state
+      let activeRecallTask = null;
+
+      // Timer State
+      let timerMode = 'focus';
+      let timerMinutes = 25;
+      let timerTotalSeconds = 25 * 60;
+      let timerRemainingSeconds = 25 * 60;
+      let timerInterval = null;
+      let timerIsRunning = false;
+      let focusSecondsElapsed = 0;
+
+      // Anti-Distraction Motivational Quotes List
+      const antiDistractionQuotes = [
+        "Tarik napas dalam-dalam... Tetap tenang dan lanjutkan ritmemu 🌿",
+        "Jauhkan distraksi sejenak. Kamu sedang membangun masa depanmu sekarang ☕",
+        "Pikiranmu tajam dan jernih. Jangan biarkan ponsel mengalihkan perhatianmu 📵",
+        "Fokusmu sangat berharga. Satu langkah demi satu langkah menuju sukses! ✨",
+        "Setiap menit yang kamu pertahankan hari ini adalah kemenangan untuk dirimu sendiri 💪",
+        "Ketenangan adalah kunci penguasaan materi. Nikmati proses belajar ini 📜",
+        "Hanya ada kamu dan apa yang sedang kamu selesaikan saat ini. Lanjutkan! 🎯"
+      ];
+
+      // Web Audio API State
+      let audioCtx = null;
+      let lofiAudioCtx = null;
+      let lofiIsPlaying = false;
+      let currentLofiTrack = 0;
+      let lofiIntervalId = null;
+      let lofiMasterGain = null;
+      let lofiNoiseSource = null;
+
+      /* ----------------------------------------------------------------------
+         DOM Referensi
+         ---------------------------------------------------------------------- */
+      const navButtons = document.querySelectorAll('.nav-btn');
+      const tabPages = document.querySelectorAll('.tab-page');
+      const headerDateStr = document.getElementById('headerDateStr');
+      const headerStatText = document.getElementById('headerStatText');
+      const supportiveToast = document.getElementById('supportiveToast');
+      const supportiveToastMsg = document.getElementById('supportiveToastMsg');
+
+      // Anti Distraction Banner
+      const antiDistractionBanner = document.getElementById('antiDistractionBanner');
+      const antiDistractionMsg = document.getElementById('antiDistractionMsg');
+
+      // Tab Tugas DOM
+      const taskListContainer = document.getElementById('taskListContainer');
+      const tasksEmptyState = document.getElementById('tasksEmptyState');
+      const taskStatRatio = document.getElementById('taskStatRatio');
+      const taskProgressBar = document.getElementById('taskProgressBar');
+      const quickTaskInput = document.getElementById('quickTaskInput');
+      const btnQuickAdd = document.getElementById('btnQuickAdd');
+      const chkPriority = document.getElementById('chkPriority');
+      const chkActiveRecall = document.getElementById('chkActiveRecall');
+      const diffPills = document.querySelectorAll('.diff-pill');
+      const taskFiltersRow = document.getElementById('taskFiltersRow');
+      let selectedDiff = 'Sedang';
+
+      // Tab Fokus DOM
+      const pomoModes = document.getElementById('pomoModes');
+      const btnDecreaseMinute = document.getElementById('btnDecreaseMinute');
+      const btnIncreaseMinute = document.getElementById('btnIncreaseMinute');
+      const btnCustomTimeBadge = document.getElementById('btnCustomTimeBadge');
+      const currentDurationDisplay = document.getElementById('currentDurationDisplay');
+      const quickPresetRow = document.getElementById('quickPresetRow');
+      const timerDigitsDisplay = document.getElementById('timerDigitsDisplay');
+      const timerModeLabel = document.getElementById('timerModeLabel');
+      const timerProgressRing = document.getElementById('timerProgressRing');
+      
+      const btnThumbToggle = document.getElementById('btnThumbToggle');
+      const btnThumbReset = document.getElementById('btnThumbReset');
+      const btnThumbSkip = document.getElementById('btnThumbSkip');
+      const thumbIconHolder = document.getElementById('thumbIconHolder');
+      const thumbToggleLabel = document.getElementById('thumbToggleLabel');
+
+      // Lo-Fi Music Station DOM
+      const btnToggleLofiMusic = document.getElementById('btnToggleLofiMusic');
+      const lofiPlayIcon = document.getElementById('lofiPlayIcon');
+      const lofiBtnText = document.getElementById('lofiBtnText');
+      const vinylRecordIcon = document.getElementById('vinylRecordIcon');
+      const lofiTrackSelector = document.getElementById('lofiTrackSelector');
+      const lofiTrackDesc = document.getElementById('lofiTrackDesc');
+      const focusSessionsCount = document.getElementById('focusSessionsCount');
+      const focusMinutesCount = document.getElementById('focusMinutesCount');
+
+      // Active Recall & Reflection Modals DOM
+      const sessionFinishedReflectionModal = document.getElementById('sessionFinishedReflectionModal');
+      const btnDismissReflectionModal = document.getElementById('btnDismissReflectionModal');
+      const btnGoToJournalReflection = document.getElementById('btnGoToJournalReflection');
+      const activeRecallPromptModal = document.getElementById('activeRecallPromptModal');
+      const activeRecallModalDesc = document.getElementById('activeRecallModalDesc');
+      const btnCancelRecallModal = document.getElementById('btnCancelRecallModal');
+      const btnStartRecallSession = document.getElementById('btnStartRecallSession');
+      const activeRecallSessionBanner = document.getElementById('activeRecallSessionBanner');
+      const recallTaskTitleDisplay = document.getElementById('recallTaskTitleDisplay');
+      const activeRecallWriteModal = document.getElementById('activeRecallWriteModal');
+      const recallTaskTitleInput = document.getElementById('recallTaskTitleInput');
+      const recallWriteContent = document.getElementById('recallWriteContent');
+      const btnDismissRecallWrite = document.getElementById('btnDismissRecallWrite');
+      const btnFinishRecallAndTask = document.getElementById('btnFinishRecallAndTask');
+      let pendingRecallTaskId = null;
+
+      // Journal DOM
+      const moodSelectorGroup = document.getElementById('moodSelectorGroup');
+      const journalTitleInput = document.getElementById('journalTitleInput');
+      const journalContentInput = document.getElementById('journalContentInput');
+      const btnSaveJournal = document.getElementById('btnSaveJournal');
+      const journalListContainer = document.getElementById('journalListContainer');
+      const journalTotalCount = document.getElementById('journalTotalCount');
+      let selectedMood = { mood: 'Tenang', emoji: '🌿' };
+
+      // Tab Arsip DOM
+      const booksRowRecall = document.getElementById('booksRowRecall');
+      const booksRowJournals = document.getElementById('booksRowJournals');
+      const tierRecallCount = document.getElementById('tierRecallCount');
+      const tierJournalCount = document.getElementById('tierJournalCount');
+      const archiveSearchInput = document.getElementById('archiveSearchInput');
+      const archiveCategoryRow = document.getElementById('archiveCategoryRow');
+      const archiveReaderModal = document.getElementById('archiveReaderModal');
+      const readerCategoryBadge = document.getElementById('readerCategoryBadge');
+      const readerDateText = document.getElementById('readerDateText');
+      const readerTitleText = document.getElementById('readerTitleText');
+      const readerContentText = document.getElementById('readerContentText');
+      const btnCloseArchiveReader = document.getElementById('btnCloseArchiveReader');
+      const btnCopyArchiveContent = document.getElementById('btnCopyArchiveContent');
+      let currentActiveArchiveCat = 'all';
+
+      // Settings DOM
+      const userNameInput = document.getElementById('userNameInput');
+      const btnSaveName = document.getElementById('btnSaveName');
+      const settingSoundToggle = document.getElementById('settingSoundToggle');
+      const settingLofiMuteToggle = document.getElementById('settingLofiMuteToggle');
+      const btnExportData = document.getElementById('btnExportData');
+      const btnClearAllData = document.getElementById('btnClearAllData');
+
+      const lofiDescriptions = [
+        "Akord electric piano Rhodes hangat berputar lambat dengan desau vinyl lembut.",
+        "Derau rintik hujan lembut dan gemersik pita kaset malam yang menenangkan.",
+        "Dentang melodi kalimba lembut diiringi gemeretak api kayu perapian hangat.",
+        "Resonansi frekuensi 432Hz deep meditative drone untuk stimulasi gelombang alfa otak.",
+        "Arpeggio melodi piano lo-fi vintage bernuansa nostalgia yang syahdu."
+      ];
+
+      /* ----------------------------------------------------------------------
+         Inisialisasi
+         ---------------------------------------------------------------------- */
+      function init() {
+        loadData();
+        setupNavigation();
+        setupTaskTab();
+        setupFocusTab();
+        setupJournalTab();
+        setupArchiveTab();
+        setupSettingsTab();
+        setupActiveRecallHandlers();
+
+        updateDateDisplay();
+        renderTasks();
+        renderJournals();
+        renderFocusStats();
+        renderBookshelf();
+        renderPresetChips();
+        updateTimerDisplay();
+        checkActiveRecallBanner();
+      }
+
+      /* ----------------------------------------------------------------------
+         Penyimpanan Data ke LocalStorage
+         ---------------------------------------------------------------------- */
+      function loadData() {
+        try {
+          const storedTasks = localStorage.getItem(STORAGE_KEY_TASKS);
+          tasks = storedTasks ? JSON.parse(storedTasks) : getSeedTasks();
+
+          const storedJournals = localStorage.getItem(STORAGE_KEY_JOURNALS);
+          journals = storedJournals ? JSON.parse(storedJournals) : getSeedJournals();
+
+          const storedArchives = localStorage.getItem(STORAGE_KEY_ARCHIVES);
+          archives = storedArchives ? JSON.parse(storedArchives) : getSeedArchives();
+
+          const storedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
+          if (storedSettings) {
+            settings = { ...defaultSettings, ...JSON.parse(storedSettings) };
+          }
+
+          const storedStats = localStorage.getItem(STORAGE_KEY_FOCUS_STATS);
+          if (storedStats) {
+            const parsed = JSON.parse(storedStats);
+            if (parsed.lastDate === new Date().toDateString()) {
+              focusStats = parsed;
+            } else {
+              focusStats = { sessionsToday: 0, totalMinutes: parsed.totalMinutes || 0, lastDate: new Date().toDateString() };
+            }
+          }
+
+          const storedRecall = localStorage.getItem(STORAGE_KEY_ACTIVE_RECALL);
+          if (storedRecall) {
+            activeRecallTask = JSON.parse(storedRecall);
+          }
+
+          userNameInput.value = settings.userName;
+          settingSoundToggle.checked = settings.soundEnabled;
+          settingLofiMuteToggle.checked = settings.lofiMuted;
+
+          timerMinutes = settings.focusDuration || 25;
+          timerTotalSeconds = timerMinutes * 60;
+          timerRemainingSeconds = timerTotalSeconds;
+
+        } catch (e) {
+          console.error('Error loading localStorage:', e);
+        }
+      }
+
+      function saveTasks() { localStorage.setItem(STORAGE_KEY_TASKS, JSON.stringify(tasks)); }
+      function saveJournals() { localStorage.setItem(STORAGE_KEY_JOURNALS, JSON.stringify(journals)); }
+      function saveArchives() { localStorage.setItem(STORAGE_KEY_ARCHIVES, JSON.stringify(archives)); }
+      function saveSettings() { localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings)); }
+      function saveFocusStats() {
+        focusStats.lastDate = new Date().toDateString();
+        localStorage.setItem(STORAGE_KEY_FOCUS_STATS, JSON.stringify(focusStats));
+      }
+      function saveActiveRecallState() {
+        if (activeRecallTask) localStorage.setItem(STORAGE_KEY_ACTIVE_RECALL, JSON.stringify(activeRecallTask));
+        else localStorage.removeItem(STORAGE_KEY_ACTIVE_RECALL);
+      }
+
+      function getSeedTasks() {
+        return [
+          {
+            id: 't-1',
+            title: 'Membaca konsep utama Active Recall & Spaced Repetition',
+            difficulty: 'Sedang',
+            isPriority: true,
+            isActiveRecall: true,
+            completed: false,
+            createdAt: Date.now() - 3600000
+          },
+          {
+            id: 't-2',
+            title: 'Menuliskan 3 hal penting yang disyukuri hari ini',
+            difficulty: 'Mudah',
+            isPriority: false,
+            isActiveRecall: false,
+            completed: true,
+            createdAt: Date.now() - 7200000
+          },
+          {
+            id: 't-3',
+            title: 'Menyusun draf rencana kerja minggu depan',
+            difficulty: 'Susah',
+            isPriority: false,
+            isActiveRecall: false,
+            completed: false,
+            createdAt: Date.now() - 1800000
+          }
+        ];
+      }
+
+      function getSeedJournals() {
+        return [
+          {
+            id: 'j-1',
+            title: 'Pagi yang Tenang',
+            content: 'Memulai hari dengan secangkir kopi dan rencana yang fleksibel. Mengutamakan ketenangan berpikir dibanding ketergesaan.',
+            mood: 'Tenang',
+            emoji: '🌿',
+            createdAt: Date.now() - 14400000
+          }
+        ];
+      }
+
+      function getSeedArchives() {
+        return [
+          {
+            id: 'arc-1',
+            title: 'Vol. I: Risalah Active Recall',
+            category: 'recall',
+            leatherColor: 'burgundy',
+            date: '28 Sep 2026',
+            content: 'Catatan komprehensif mengenai teknik pengambilan kembali memori (Active Recall). Pengujian ingatan secara berkala tanpa melihat buku memperkuat jalur sinapsis otak hingga 300% lebih efektif dibanding sekadar membaca berulang.'
+          },
+          {
+            id: 'arc-2',
+            title: 'Vol. II: Filosofi Fokus & Aliran Waktu',
+            category: 'recall',
+            leatherColor: 'forest',
+            date: '29 Sep 2026',
+            content: 'Ringkasan pembelajaran pomodoro: Membagi waktu belajar dalam blok 25 menit memungkinkan konsentrasi berada pada tingkat puncak tanpa menimbulkan kelelahan kognitif dini.'
+          },
+          {
+            id: 'arc-3',
+            title: 'Vol. III: Hukum Konsentrasi Mental',
+            category: 'recall',
+            leatherColor: 'sepia',
+            date: '30 Sep 2026',
+            content: 'Kajian pemahaman: Lingkungan yang tenang dan ritme teratur membebaskan pikiran dari gangguan luar, membina ketenangan batin dalam menghasilkan karya berbobot.'
+          },
+          {
+            id: 'arc-4',
+            title: 'Diari: Ketenangan Musim Gugur',
+            category: 'journal',
+            leatherColor: 'mustard',
+            date: '25 Sep 2026',
+            content: 'Refleksi harian: Menemukan kedamaian dalam tugas-tugas kecil yang diselesaikan dengan cermat. Hari ini berlalu dengan ritme yang memuaskan.'
+          },
+          {
+            id: 'arc-5',
+            title: 'Diari: Rasa Syukur & Pencapaian',
+            category: 'journal',
+            leatherColor: 'navy',
+            date: '27 Sep 2026',
+            content: 'Mengevaluasi pekan kerja. Kesabaran menghadapi masalah rumit ternyata membuahkan solusi yang lebih elegan dari dugaan semula.'
+          },
+          {
+            id: 'arc-6',
+            title: 'Folio: Selesai Desain UI Antik',
+            category: 'task',
+            leatherColor: 'burgundy',
+            date: '30 Sep 2026',
+            content: 'Pencapaian agenda: Berhasil menuntaskan seluruh struktur rancangan antarmuka bergaya perpustakaan kayu klasik dengan aksen emas kuno.'
+          }
+        ];
+      }
+
+      /* ----------------------------------------------------------------------
+         Navigasi Tab
+         ---------------------------------------------------------------------- */
+      function setupNavigation() {
+        navButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            switchTab(targetTab);
+          });
+        });
+      }
+
+      function switchTab(tabId) {
+        navButtons.forEach(b => {
+          if (b.getAttribute('data-tab') === tabId) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+
+        tabPages.forEach(p => {
+          if (p.id === tabId) {
+            p.classList.add('active');
+          } else {
+            p.classList.remove('active');
+          }
+        });
+
+        if (tabId === 'tab-archive') {
+          renderBookshelf();
+        }
+
+        document.getElementById('mainContent').scrollTop = 0;
+      }
+
+      /* ----------------------------------------------------------------------
+         Notifikasi Suportif & Banner Anti-Distraksi
+         ---------------------------------------------------------------------- */
+      let toastTimer = null;
+      function showSupportiveNotification(customMessage = null) {
+        let msg = customMessage;
+
+        if (!msg) {
+          const total = tasks.length;
+          const completedCount = tasks.filter(t => t.completed).length;
+          const pendingCount = total - completedCount;
+
+          if (total === 0) {
+            msg = "Belum ada tugas. Nikmati waktu luangmu!";
+          } else if (pendingCount === 0) {
+            msg = "Luar biasa! Semua tugas hari ini berhasil kamu tuntaskan! 🎉";
+          } else if (pendingCount === 1) {
+            msg = "Tinggal 1 tugas lagi! Semangat sedikit lagi tuntas! ☕";
+          } else if (completedCount > 0) {
+            msg = `Selamat! Anda sudah menyelesaikan ${completedCount} tugas! Sisa ${pendingCount} lagi.`;
+          } else {
+            msg = `Ada ${pendingCount} tugas menanti. Mulai satu langkah kecil!`;
+          }
+        }
+
+        supportiveToastMsg.textContent = msg;
+        supportiveToast.classList.add('show');
+
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          supportiveToast.classList.remove('show');
+        }, 2600);
+      }
+
+      let antiDistractionTimer = null;
+      function triggerAntiDistractionPopup() {
+        const quote = antiDistractionQuotes[Math.floor(Math.random() * antiDistractionQuotes.length)];
+        antiDistractionMsg.textContent = quote;
+        antiDistractionBanner.classList.add('show');
+
+        if (antiDistractionTimer) clearTimeout(antiDistractionTimer);
+        antiDistractionTimer = setTimeout(() => {
+          antiDistractionBanner.classList.remove('show');
+        }, 4500);
+      }
+
+      /* ----------------------------------------------------------------------
+         Audio Sintesis (Alarm Native & Web Audio Lo-Fi)
+         ---------------------------------------------------------------------- */
+      function playNativeBeepAlarm() {
+        if (!settings.soundEnabled) return;
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          const notes = [
+            { f: 880, start: 0, dur: 0.15 },
+            { f: 880, start: 0.18, dur: 0.15 },
+            { f: 1046.5, start: 0.38, dur: 0.22 },
+            { f: 1318.5, start: 0.65, dur: 0.45 }
+          ];
+
+          notes.forEach(note => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(note.f, now + note.start);
+
+            gain.gain.setValueAtTime(0.25, now + note.start);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + note.start + note.dur);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now + note.start);
+            osc.stop(now + note.start + note.dur + 0.05);
+          });
+        } catch (e) {}
+      }
+
+      function playChime() {
+        if (!settings.soundEnabled) return;
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          [587.33, 880].forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.16, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5 + idx * 0.08);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + 0.6 + idx * 0.08);
+          });
+        } catch (e) {}
+      }
+
+      function startLofiMusic() {
+        if (settings.lofiMuted) {
+          showSupportiveNotification("Musik Lo-Fi sedang dimute di Settings.");
+          return;
+        }
+
+        try {
+          if (!lofiAudioCtx) lofiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (lofiAudioCtx.state === 'suspended') lofiAudioCtx.resume();
+
+          stopLofiMusic();
+
+          lofiMasterGain = lofiAudioCtx.createGain();
+          lofiMasterGain.gain.setValueAtTime(0.14, lofiAudioCtx.currentTime);
+          lofiMasterGain.connect(lofiAudioCtx.destination);
+
+          createVinylDustNoise();
+          playCurrentLofiPattern();
+
+          lofiIsPlaying = true;
+          btnToggleLofiMusic.classList.add('playing');
+          lofiPlayIcon.textContent = '⏸';
+          lofiBtnText.textContent = 'Jeda Musik';
+          vinylRecordIcon.classList.add('spinning');
+          showSupportiveNotification(`Memutar: ${lofiDescriptions[currentLofiTrack].slice(0, 35)}...`);
+        } catch (e) {}
+      }
+
+      function stopLofiMusic() {
+        if (lofiIntervalId) { clearInterval(lofiIntervalId); lofiIntervalId = null; }
+        if (lofiNoiseSource) { try { lofiNoiseSource.stop(); } catch (e) {} lofiNoiseSource = null; }
+        if (lofiMasterGain && lofiAudioCtx) {
+          try { lofiMasterGain.gain.setTargetAtTime(0, lofiAudioCtx.currentTime, 0.2); } catch (e) {}
+        }
+        lofiIsPlaying = false;
+        btnToggleLofiMusic.classList.remove('playing');
+        lofiPlayIcon.textContent = '▶';
+        lofiBtnText.textContent = 'Putar Musik';
+        vinylRecordIcon.classList.remove('spinning');
+      }
+
+      function createVinylDustNoise() {
+        if (!lofiAudioCtx) return;
+        const bufferSize = lofiAudioCtx.sampleRate * 3;
+        const noiseBuffer = lofiAudioCtx.createBuffer(1, bufferSize, lofiAudioCtx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          lastOut = (lastOut + (0.02 * white)) / 1.02;
+          const crackle = Math.random() < 0.0004 ? (Math.random() * 0.4 - 0.2) : 0;
+          data[i] = (lastOut * 0.3) + crackle;
+        }
+
+        lofiNoiseSource = lofiAudioCtx.createBufferSource();
+        lofiNoiseSource.buffer = noiseBuffer;
+        lofiNoiseSource.loop = true;
+
+        const noiseFilter = lofiAudioCtx.createBiquadFilter();
+        noiseFilter.type = currentLofiTrack === 1 ? 'bandpass' : 'lowpass';
+        noiseFilter.frequency.setValueAtTime(currentLofiTrack === 1 ? 800 : 450, lofiAudioCtx.currentTime);
+
+        const noiseGain = lofiAudioCtx.createGain();
+        noiseGain.gain.setValueAtTime(currentLofiTrack === 1 ? 0.2 : 0.08, lofiAudioCtx.currentTime);
+
+        lofiNoiseSource.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(lofiMasterGain);
+
+        lofiNoiseSource.start(0);
+      }
+
+      function playCurrentLofiPattern() {
+        if (!lofiAudioCtx) return;
+
+        if (currentLofiTrack === 0) {
+          const chordSets = [
+            [174.61, 220.00, 261.63, 329.63],
+            [164.81, 196.00, 246.94, 293.66],
+            [146.83, 174.61, 220.00, 261.63],
+            [130.81, 164.81, 196.00, 246.94]
+          ];
+          let step = 0;
+          playLofiChord(chordSets[0], 2.8);
+          lofiIntervalId = setInterval(() => {
+            step = (step + 1) % chordSets.length;
+            playLofiChord(chordSets[step], 2.8);
+          }, 3200);
+        } else if (currentLofiTrack === 1) {
+          lofiIntervalId = setInterval(() => { playRainDroplet(); }, 350);
+        } else if (currentLofiTrack === 2) {
+          const kalimbaScale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+          lofiIntervalId = setInterval(() => {
+            const freq = kalimbaScale[Math.floor(Math.random() * kalimbaScale.length)];
+            playKalimbaNote(freq);
+          }, 700);
+        } else if (currentLofiTrack === 3) {
+          playWarmDrone(216);
+          lofiIntervalId = setInterval(() => { playWarmDrone(216); }, 4500);
+        } else if (currentLofiTrack === 4) {
+          const melody = [329.63, 392.00, 440.00, 493.88, 587.33, 493.88, 440.00, 392.00];
+          let mStep = 0;
+          playVintagePianoNote(melody[0]);
+          lofiIntervalId = setInterval(() => {
+            mStep = (mStep + 1) % melody.length;
+            playVintagePianoNote(melody[mStep]);
+          }, 650);
+        }
+      }
+
+      function playLofiChord(freqs, duration) {
+        if (!lofiAudioCtx || !lofiMasterGain) return;
+        const now = lofiAudioCtx.currentTime;
+        freqs.forEach(f => {
+          const osc = lofiAudioCtx.createOscillator();
+          const filter = lofiAudioCtx.createBiquadFilter();
+          const gain = lofiAudioCtx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now);
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(520, now);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.07, now + 0.25);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(lofiMasterGain);
+
+          osc.start(now);
+          osc.stop(now + duration + 0.1);
+        });
+      }
+
+      function playRainDroplet() {
+        if (!lofiAudioCtx || !lofiMasterGain) return;
+        const now = lofiAudioCtx.currentTime;
+        const osc = lofiAudioCtx.createOscillator();
+        const gain = lofiAudioCtx.createGain();
+        osc.type = 'sine';
+        const randFreq = 600 + Math.random() * 800;
+        osc.frequency.setValueAtTime(randFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(250, now + 0.08);
+
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(lofiMasterGain);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      }
+
+      function playKalimbaNote(freq) {
+        if (!lofiAudioCtx || !lofiMasterGain) return;
+        const now = lofiAudioCtx.currentTime;
+        const osc = lofiAudioCtx.createOscillator();
+        const gain = lofiAudioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+        osc.connect(gain);
+        gain.connect(lofiMasterGain);
+        osc.start(now);
+        osc.stop(now + 0.95);
+      }
+
+      function playWarmDrone(freq) {
+        if (!lofiAudioCtx || !lofiMasterGain) return;
+        const now = lofiAudioCtx.currentTime;
+        const osc1 = lofiAudioCtx.createOscillator();
+        const osc2 = lofiAudioCtx.createOscillator();
+        const gain = lofiAudioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(freq, now);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(freq * 1.5, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.08, now + 1.5);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 4.5);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(lofiMasterGain);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 4.6);
+        osc2.stop(now + 4.6);
+      }
+
+      function playVintagePianoNote(freq) {
+        if (!lofiAudioCtx || !lofiMasterGain) return;
+        const now = lofiAudioCtx.currentTime;
+        const osc = lofiAudioCtx.createOscillator();
+        const filter = lofiAudioCtx.createBiquadFilter();
+        const gain = lofiAudioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq + (Math.random() * 1.5 - 0.75), now);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(620, now);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(lofiMasterGain);
+
+        osc.start(now);
+        osc.stop(now + 0.65);
+      }
+
+      /* ----------------------------------------------------------------------
+         TAB 1: LOGIKA TUGAS (TODO)
+         ---------------------------------------------------------------------- */
+      function setupTaskTab() {
+        diffPills.forEach(pill => {
+          pill.addEventListener('click', () => {
+            diffPills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            selectedDiff = pill.getAttribute('data-val');
+          });
+        });
+
+        btnQuickAdd.addEventListener('click', handleCreateTask);
+        quickTaskInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') handleCreateTask();
+        });
+
+        taskFiltersRow.addEventListener('click', (e) => {
+          const btn = e.target.closest('.filter-stamp');
+          if (btn) {
+            taskFiltersRow.querySelectorAll('.filter-stamp').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilterType = btn.getAttribute('data-filter-type');
+            currentFilterValue = btn.getAttribute('data-filter');
+            renderTasks();
+          }
+        });
+      }
+
+      function handleCreateTask() {
+        const text = quickTaskInput.value.trim();
+        if (!text) return;
+
+        const isPrio = chkPriority.checked;
+        const isRecall = chkActiveRecall.checked;
+
+        const newTask = {
+          id: 't-' + Date.now(),
+          title: text,
+          difficulty: selectedDiff,
+          isPriority: isPrio,
+          isActiveRecall: isRecall,
+          completed: false,
+          createdAt: Date.now()
+        };
+
+        if (isPrio) {
+          tasks.unshift(newTask);
+        } else {
+          const lastPriorityIdx = tasks.findLastIndex(t => t.isPriority && !t.completed);
+          if (lastPriorityIdx >= 0) tasks.splice(lastPriorityIdx + 1, 0, newTask);
+          else tasks.unshift(newTask);
+        }
+
+        saveTasks();
+        renderTasks();
+
+        quickTaskInput.value = '';
+        chkPriority.checked = false;
+        chkActiveRecall.checked = false;
+
+        playChime();
+        showSupportiveNotification(isPrio ? "Tugas prioritas ditambahkan di paling atas!" : "Tugas baru ditambahkan!");
+      }
+
+      function toggleTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        if (task.isActiveRecall && !task.completed) {
+          pendingRecallTaskId = taskId;
+          activeRecallModalDesc.innerHTML = `Tugas "<b>${escapeHtml(task.title)}</b>" menggunakan <b>Mode Active Recall</b>.<br><br>Untuk menyelesaikan tugas ini, Anda perlu menjalankan sesi belajar timer Fokus dan mencatat pemahaman Anda ke Jurnal.`;
+          activeRecallPromptModal.classList.add('active');
+          return;
+        }
+
+        task.completed = !task.completed;
+        sortTasks();
+        saveTasks();
+        renderTasks();
+
+        if (task.completed) {
+          playChime();
+          showSupportiveNotification();
+        } else {
+          showSupportiveNotification("Tugas dikembalikan ke daftar aktif.");
+        }
+      }
+
+      function deleteTask(taskId) {
+        tasks = tasks.filter(t => t.id !== taskId);
+        if (activeRecallTask && activeRecallTask.id === taskId) {
+          activeRecallTask = null;
+          saveActiveRecallState();
+          checkActiveRecallBanner();
+        }
+        saveTasks();
+        renderTasks();
+        showSupportiveNotification("Tugas telah dihapus.");
+      }
+
+      function sortTasks() {
+        tasks.sort((a, b) => {
+          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+          if (!a.completed && !b.completed) {
+            if (a.isPriority !== b.isPriority) return a.isPriority ? -1 : 1;
+          }
+          return b.createdAt - a.createdAt;
+        });
+      }
+
+      function renderTasks() {
+        sortTasks();
+        let filtered = [...tasks];
+
+        if (currentFilterType === 'status') {
+          if (currentFilterValue === 'active') filtered = filtered.filter(t => !t.completed);
+          else if (currentFilterValue === 'completed') filtered = filtered.filter(t => t.completed);
+        } else if (currentFilterType === 'diff') {
+          filtered = filtered.filter(t => t.difficulty === currentFilterValue);
+        } else if (currentFilterType === 'priority') {
+          filtered = filtered.filter(t => t.isPriority);
+        }
+
+        taskListContainer.innerHTML = '';
+
+        if (filtered.length === 0) {
+          tasksEmptyState.style.display = 'block';
+        } else {
+          tasksEmptyState.style.display = 'none';
+
+          filtered.forEach(task => {
+            const el = document.createElement('div');
+            el.className = `task-card ${task.completed ? 'completed' : ''}`;
+            el.id = `task-${task.id}`;
+
+            let diffBadgeClass = 'badge-medium';
+            if (task.difficulty === 'Mudah') diffBadgeClass = 'badge-easy';
+            if (task.difficulty === 'Susah') diffBadgeClass = 'badge-hard';
+
+            el.innerHTML = `
+              <div class="task-checkbox-box" data-action="toggle" title="Tandai selesai">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="task-body">
+                <div class="task-text">${escapeHtml(task.title)}</div>
+                <div class="task-badges-row">
+                  ${task.isPriority ? `<span class="task-badge badge-priority">★ Prioritas</span>` : ''}
+                  <span class="task-badge ${diffBadgeClass}">${escapeHtml(task.difficulty)}</span>
+                  ${task.isActiveRecall ? `<span class="task-badge badge-recall" data-action="recall-info" title="Klik info Active Recall">🧠 Active Recall</span>` : ''}
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="btn-task-del" data-action="del" title="Hapus tugas">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            `;
+
+            el.querySelector('[data-action="toggle"]').addEventListener('click', () => { toggleTask(task.id); });
+
+            if (task.isActiveRecall) {
+              const recallBadge = el.querySelector('[data-action="recall-info"]');
+              if (recallBadge) {
+                recallBadge.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  toggleTask(task.id);
+                });
+              }
+            }
+
+            el.querySelector('[data-action="del"]').addEventListener('click', (e) => {
+              e.stopPropagation();
+              deleteTask(task.id);
+            });
+
+            taskListContainer.appendChild(el);
+          });
+        }
+
+        updateStatsCard();
+      }
+
+      function updateStatsCard() {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        taskStatRatio.textContent = `${completed} / ${total}`;
+        taskProgressBar.style.width = `${percent}%`;
+        headerStatText.textContent = `${completed} Selesai`;
+      }
+
+      /* ----------------------------------------------------------------------
+         TAB 2: LOGIKA TIMER POMODORO FLEKSIBEL & LO-FI
+         ---------------------------------------------------------------------- */
+      function setupFocusTab() {
+        pomoModes.addEventListener('click', (e) => {
+          const btn = e.target.closest('.pomo-mode-btn');
+          if (btn) {
+            pomoModes.querySelectorAll('.pomo-mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            setTimerMode(btn.getAttribute('data-mode'));
+          }
+        });
+
+        btnDecreaseMinute.addEventListener('click', () => { adjustTimerMinutes(-5); });
+        btnIncreaseMinute.addEventListener('click', () => { adjustTimerMinutes(5); });
+
+        btnCustomTimeBadge.addEventListener('click', () => {
+          const input = prompt(`Masukkan durasi ${timerMode === 'focus' ? 'Fokus' : 'Istirahat'} (dalam menit):`, timerMinutes);
+          if (input !== null) {
+            const parsed = parseInt(input, 10);
+            if (!isNaN(parsed) && parsed > 0 && parsed <= 180) {
+              setCustomMinutes(parsed);
+              showSupportiveNotification(`Durasi diatur: ${parsed} menit`);
+            } else {
+              alert('Masukkan angka menit yang valid (1 - 180 menit).');
+            }
+          }
+        });
+
+        btnThumbToggle.addEventListener('click', () => {
+          if (timerIsRunning) pauseTimer();
+          else startTimer();
+        });
+
+        btnThumbReset.addEventListener('click', () => {
+          resetTimer();
+          showSupportiveNotification('Timer diatur ulang');
+        });
+
+        btnThumbSkip.addEventListener('click', completeSession);
+
+        btnToggleLofiMusic.addEventListener('click', () => {
+          if (lofiIsPlaying) stopLofiMusic();
+          else startLofiMusic();
+        });
+
+        lofiTrackSelector.addEventListener('click', (e) => {
+          const pill = e.target.closest('.lofi-track-pill');
+          if (pill) {
+            lofiTrackSelector.querySelectorAll('.lofi-track-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            currentLofiTrack = parseInt(pill.getAttribute('data-track'), 10);
+            lofiTrackDesc.textContent = lofiDescriptions[currentLofiTrack];
+
+            if (lofiIsPlaying) startLofiMusic();
+          }
+        });
+
+        btnDismissReflectionModal.addEventListener('click', () => {
+          sessionFinishedReflectionModal.classList.remove('active');
+        });
+
+        btnGoToJournalReflection.addEventListener('click', () => {
+          sessionFinishedReflectionModal.classList.remove('active');
+          switchTab('tab-journal');
+          journalTitleInput.value = `Evaluasi Sesi Fokus (${new Date().toLocaleTimeString().slice(0, 5)})`;
+          journalContentInput.value = "Apa yang berhasil saya pelajari atau kerjakan dengan baik pada sesi fokus ini?\n- ";
+          journalContentInput.focus();
+        });
+      }
+
+      function adjustTimerMinutes(delta) {
+        let newMin = timerMinutes + delta;
+        if (newMin < 1) newMin = 1;
+        if (newMin > 180) newMin = 180;
+        setCustomMinutes(newMin);
+      }
+
+      function setCustomMinutes(mins) {
+        timerMinutes = mins;
+        if (timerMode === 'focus') settings.focusDuration = mins;
+        else if (timerMode === 'short') settings.shortBreak = mins;
+        else if (timerMode === 'long') settings.longBreak = mins;
+        saveSettings();
+
+        timerTotalSeconds = timerMinutes * 60;
+        timerRemainingSeconds = timerTotalSeconds;
+        renderPresetChips();
+        updateTimerDisplay();
+      }
+
+      function renderPresetChips() {
+        quickPresetRow.innerHTML = '';
+        let presets = [];
+        if (timerMode === 'focus') presets = [15, 25, 45, 60];
+        else if (timerMode === 'short') presets = [3, 5, 10, 15];
+        else presets = [10, 15, 20, 30];
+
+        presets.forEach(p => {
+          const btn = document.createElement('button');
+          btn.className = `preset-chip ${p === timerMinutes ? 'active' : ''}`;
+          btn.textContent = `${p}m`;
+          btn.addEventListener('click', () => { setCustomMinutes(p); });
+          quickPresetRow.appendChild(btn);
+        });
+
+        currentDurationDisplay.textContent = `${timerMinutes} Menit`;
+      }
+
+      function setTimerMode(mode) {
+        timerMode = mode;
+        if (timerInterval) clearInterval(timerInterval);
+        timerIsRunning = false;
+        focusSecondsElapsed = 0;
+        updateThumbButtons();
+
+        if (mode === 'focus') {
+          timerMinutes = settings.focusDuration || 25;
+          timerModeLabel.textContent = activeRecallTask ? 'Belajar Active Recall' : 'Sesi Belajar Fokus';
+          timerProgressRing.style.stroke = 'var(--leather)';
+        } else if (mode === 'short') {
+          timerMinutes = settings.shortBreak || 5;
+          timerModeLabel.textContent = 'Istirahat Singkat';
+          timerProgressRing.style.stroke = 'var(--sand)';
+        } else if (mode === 'long') {
+          timerMinutes = settings.longBreak || 15;
+          timerModeLabel.textContent = 'Istirahat Panjang';
+          timerProgressRing.style.stroke = 'var(--cocoa)';
+        }
+
+        timerTotalSeconds = timerMinutes * 60;
+        timerRemainingSeconds = timerTotalSeconds;
+        renderPresetChips();
+        updateTimerDisplay();
+      }
+
+      function startTimer() {
+        if (timerIsRunning) return;
+        timerIsRunning = true;
+        updateThumbButtons();
+
+        timerInterval = setInterval(() => {
+          if (timerRemainingSeconds > 0) {
+            timerRemainingSeconds--;
+            focusSecondsElapsed++;
+            updateTimerDisplay();
+
+            if (timerMode === 'focus' && focusSecondsElapsed > 0 && focusSecondsElapsed % 180 === 0) {
+              triggerAntiDistractionPopup();
+            }
+          } else {
+            completeSession();
+          }
+        }, 1000);
+      }
+
+      function pauseTimer() {
+        if (!timerIsRunning) return;
+        timerIsRunning = false;
+        clearInterval(timerInterval);
+        updateThumbButtons();
+      }
+
+      function resetTimer() {
+        pauseTimer();
+        focusSecondsElapsed = 0;
+        timerRemainingSeconds = timerTotalSeconds;
+        updateTimerDisplay();
+      }
+
+      function completeSession() {
+        pauseTimer();
+        focusSecondsElapsed = 0;
+
+        playNativeBeepAlarm();
+
+        if (timerMode === 'focus') {
+          focusStats.sessionsToday += 1;
+          focusStats.totalMinutes += parseInt(timerMinutes, 10);
+          saveFocusStats();
+          renderFocusStats();
+
+          if (activeRecallTask) {
+            recallTaskTitleInput.value = activeRecallTask.title;
+            recallWriteContent.value = '';
+            activeRecallWriteModal.classList.add('active');
+            resetTimer();
+            return;
+          }
+
+          sessionFinishedReflectionModal.classList.add('active');
+        } else {
+          showSupportiveNotification('Istirahat tuntas! Siap melanjutkan belajar.');
+        }
+
+        resetTimer();
+      }
+
+      function updateThumbButtons() {
+        if (timerIsRunning) {
+          thumbIconHolder.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          `;
+          thumbToggleLabel.textContent = 'Jeda';
+          btnThumbToggle.style.backgroundColor = 'var(--cocoa)';
+        } else {
+          thumbIconHolder.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          `;
+          thumbToggleLabel.textContent = timerRemainingSeconds < timerTotalSeconds ? 'Lanjutkan' : 'Mulai Fokus';
+          btnThumbToggle.style.backgroundColor = 'var(--walnut)';
+        }
+      }
+
+      function updateTimerDisplay() {
+        const mins = Math.floor(timerRemainingSeconds / 60);
+        const secs = timerRemainingSeconds % 60;
+        timerDigitsDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        const totalCircumference = 2 * Math.PI * 90;
+        const fraction = (timerTotalSeconds - timerRemainingSeconds) / timerTotalSeconds;
+        timerProgressRing.style.strokeDashoffset = totalCircumference * (1 - fraction);
+      }
+
+      function renderFocusStats() {
+        focusSessionsCount.textContent = focusStats.sessionsToday;
+        focusMinutesCount.textContent = `${focusStats.totalMinutes} mnt`;
+      }
+
+      /* ----------------------------------------------------------------------
+         TAB 4: LOGIKA DIGITAL ARCHIVE (RAK BUKU PERPUSTAKAAN KAYU KLASIK)
+         ---------------------------------------------------------------------- */
+      function setupArchiveTab() {
+        archiveCategoryRow.addEventListener('click', (e) => {
+          const btn = e.target.closest('.filter-stamp');
+          if (btn) {
+            archiveCategoryRow.querySelectorAll('.filter-stamp').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentActiveArchiveCat = btn.getAttribute('data-archive-cat');
+            renderBookshelf();
+          }
+        });
+
+        archiveSearchInput.addEventListener('input', () => {
+          renderBookshelf();
+        });
+
+        btnCloseArchiveReader.addEventListener('click', () => {
+          archiveReaderModal.classList.remove('active');
+        });
+
+        btnCopyArchiveContent.addEventListener('click', () => {
+          const text = `${readerTitleText.textContent}\n\n${readerContentText.textContent}`;
+          navigator.clipboard.writeText(text).then(() => {
+            showSupportiveNotification("Catatan buku berhasil disalin! 📋");
+          }).catch(() => {
+            showSupportiveNotification("Teks telah dipilih untuk disalin.");
+          });
+        });
+      }
+
+      function renderBookshelf() {
+        const query = (archiveSearchInput.value || '').trim().toLowerCase();
+        let filtered = [...archives];
+
+        if (currentActiveArchiveCat !== 'all') {
+          filtered = filtered.filter(b => b.category === currentActiveArchiveCat);
+        }
+
+        if (query) {
+          filtered = filtered.filter(b => 
+            b.title.toLowerCase().includes(query) || 
+            b.content.toLowerCase().includes(query)
+          );
+        }
+
+        // Bagi buku ke Rak 1 (Recall) & Rak 2 (Journals/Tasks)
+        const recallBooks = filtered.filter(b => b.category === 'recall');
+        const journalBooks = filtered.filter(b => b.category !== 'recall');
+
+        booksRowRecall.innerHTML = '';
+        booksRowJournals.innerHTML = '';
+
+        tierRecallCount.textContent = `${recallBooks.length} Buku`;
+        tierJournalCount.textContent = `${journalBooks.length} Buku`;
+
+        if (recallBooks.length === 0) {
+          booksRowRecall.innerHTML = `<span style="font-family: var(--font-serif); font-size: 0.76rem; font-style: italic; color: #a48b70; padding: 40px 10px;">(Tidak ada buku pada rak ini)</span>`;
+        } else {
+          recallBooks.forEach(book => {
+            booksRowRecall.appendChild(createBookElement(book));
+          });
+        }
+
+        if (journalBooks.length === 0) {
+          booksRowJournals.innerHTML = `<span style="font-family: var(--font-serif); font-size: 0.76rem; font-style: italic; color: #a48b70; padding: 40px 10px;">(Tidak ada buku pada rak ini)</span>`;
+        } else {
+          journalBooks.forEach(book => {
+            booksRowJournals.appendChild(createBookElement(book));
+          });
+        }
+      }
+
+      function createBookElement(book) {
+        const bookEl = document.createElement('div');
+        bookEl.className = `archive-book ${book.leatherColor || 'burgundy'}`;
+        bookEl.title = `${book.title} (Klik untuk membaca)`;
+
+        // Berikan variasi tinggi sedikit (115px - 130px) agar rak tampak alami
+        const randomHeight = 115 + (book.title.length % 15);
+        bookEl.style.height = `${randomHeight}px`;
+
+        bookEl.innerHTML = `
+          <div class="book-rib-top"></div>
+          <div class="book-spine-title">${escapeHtml(book.title)}</div>
+          <div class="book-rib-bottom"></div>
+          <div class="book-ribbon"></div>
+        `;
+
+        bookEl.addEventListener('click', () => {
+          openBookReader(book);
+        });
+
+        return bookEl;
+      }
+
+      function openBookReader(book) {
+        let catBadge = "📜 Manuskrip Active Recall";
+        if (book.category === 'journal') catBadge = "📖 Volume Jurnal Refleksi";
+        if (book.category === 'task') catBadge = "✔️ Dokumen Arsip Tugas";
+
+        readerCategoryBadge.textContent = catBadge;
+        readerDateText.textContent = book.date || 'Tercatat dalam Arsip';
+        readerTitleText.textContent = book.title;
+        readerContentText.textContent = book.content;
+
+        archiveReaderModal.classList.add('active');
+        playChime();
+      }
+
+      /* ----------------------------------------------------------------------
+         ACTIVE RECALL LOGIC (Menyimpan Hasil ke Arsip Rak Buku Juga!)
+         ---------------------------------------------------------------------- */
+      function setupActiveRecallHandlers() {
+        btnCancelRecallModal.addEventListener('click', () => {
+          activeRecallPromptModal.classList.remove('active');
+        });
+
+        btnStartRecallSession.addEventListener('click', () => {
+          activeRecallPromptModal.classList.remove('active');
+          if (!pendingRecallTaskId) return;
+
+          const task = tasks.find(t => t.id === pendingRecallTaskId);
+          if (task) {
+            activeRecallTask = task;
+            saveActiveRecallState();
+            checkActiveRecallBanner();
+            switchTab('tab-focus');
+            setTimerMode('focus');
+            showSupportiveNotification(`Sesi belajar dimulai: "${task.title.slice(0, 30)}..."`);
+          }
+        });
+
+        btnDismissRecallWrite.addEventListener('click', () => {
+          activeRecallWriteModal.classList.remove('active');
+          showSupportiveNotification("Catatan active recall dapat diisi nanti.");
+        });
+
+        btnFinishRecallAndTask.addEventListener('click', () => {
+          const content = recallWriteContent.value.trim();
+          if (!content) {
+            alert('Silakan tuliskan ringkasan pemahaman materi yang Anda ingat.');
+            recallWriteContent.focus();
+            return;
+          }
+
+          if (!activeRecallTask) return;
+
+          // 1. Simpan ke Jurnal
+          const newJournal = {
+            id: 'j-' + Date.now(),
+            title: `Active Recall: ${activeRecallTask.title}`,
+            content: content,
+            mood: 'Recall',
+            emoji: '🧠',
+            createdAt: Date.now()
+          };
+          journals.unshift(newJournal);
+          saveJournals();
+          renderJournals();
+
+          // 2. Simpan juga sebagai Buku Antik Kulit Baru ke Rak Arsip Perpustakaan!
+          const leatherColors = ['burgundy', 'forest', 'sepia', 'mustard', 'navy'];
+          const randomLeather = leatherColors[Math.floor(Math.random() * leatherColors.length)];
+          const newArchiveBook = {
+            id: 'arc-' + Date.now(),
+            title: `Recall: ${activeRecallTask.title.slice(0, 24)}`,
+            category: 'recall',
+            leatherColor: randomLeather,
+            date: formatIndonesianDate(new Date()),
+            content: `Manuskrip Pembelajaran Active Recall:\nMateri: ${activeRecallTask.title}\n\nInti Pemahaman:\n${content}`
+          };
+          archives.unshift(newArchiveBook);
+          saveArchives();
+
+          // 3. Tandai tugas Active Recall sebagai SELESAI
+          const targetTask = tasks.find(t => t.id === activeRecallTask.id);
+          if (targetTask) {
+            targetTask.completed = true;
+            saveTasks();
+            renderTasks();
+          }
+
+          activeRecallTask = null;
+          saveActiveRecallState();
+          checkActiveRecallBanner();
+          activeRecallWriteModal.classList.remove('active');
+          recallWriteContent.value = '';
+
+          playChime();
+          showSupportiveNotification("Hebat! Sesi tuntas & buku baru telah ditaruh di Rak Arsip! 📚");
+          switchTab('tab-tasks');
+        });
+      }
+
+      function checkActiveRecallBanner() {
+        if (activeRecallTask) {
+          activeRecallSessionBanner.classList.add('visible');
+          recallTaskTitleDisplay.textContent = `Tugas: ${activeRecallTask.title}`;
+        } else {
+          activeRecallSessionBanner.classList.remove('visible');
+        }
+      }
+
+      /* ----------------------------------------------------------------------
+         TAB 3: LOGIKA JURNAL
+         ---------------------------------------------------------------------- */
+      function setupJournalTab() {
+        moodSelectorGroup.addEventListener('click', (e) => {
+          const btn = e.target.closest('.mood-stamp-btn');
+          if (btn) {
+            moodSelectorGroup.querySelectorAll('.mood-stamp-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedMood = {
+              mood: btn.getAttribute('data-mood'),
+              emoji: btn.getAttribute('data-emoji')
+            };
+          }
+        });
+
+        btnSaveJournal.addEventListener('click', () => {
+          const content = journalContentInput.value.trim();
+          if (!content) {
+            showSupportiveNotification('Tuliskan catatan terlebih dahulu');
+            journalContentInput.focus();
+            return;
+          }
+
+          let title = journalTitleInput.value.trim();
+          if (!title) title = `Refleksi ${selectedMood.mood}`;
+
+          const entry = {
+            id: 'j-' + Date.now(),
+            title: title,
+            content: content,
+            mood: selectedMood.mood,
+            emoji: selectedMood.emoji,
+            createdAt: Date.now()
+          };
+
+          journals.unshift(entry);
+          saveJournals();
+          renderJournals();
+
+          // Simpan juga ke Rak Arsip Perpustakaan
+          const leatherColors = ['sepia', 'mustard', 'forest', 'burgundy'];
+          const randomLeather = leatherColors[Math.floor(Math.random() * leatherColors.length)];
+          archives.push({
+            id: 'arc-' + Date.now(),
+            title: title.slice(0, 24),
+            category: 'journal',
+            leatherColor: randomLeather,
+            date: formatIndonesianDate(new Date()),
+            content: content
+          });
+          saveArchives();
+
+          journalTitleInput.value = '';
+          journalContentInput.value = '';
+          playChime();
+          showSupportiveNotification('Catatan tersimpan & dibukukan ke Arsip 📚');
+        });
+      }
+
+      function renderJournals() {
+        journalListContainer.innerHTML = '';
+        journalTotalCount.textContent = `${journals.length} Catatan`;
+
+        journals.forEach(entry => {
+          const card = document.createElement('div');
+          card.className = 'journal-card';
+          const d = new Date(entry.createdAt);
+
+          card.innerHTML = `
+            <div class="journal-card-top">
+              <span class="journal-date-txt">${formatIndonesianDate(d)}</span>
+              <span class="task-badge" style="background: #fbf5ec;">${entry.emoji} ${escapeHtml(entry.mood)}</span>
+            </div>
+            <h4 class="journal-title-txt">${escapeHtml(entry.title)}</h4>
+            <p class="journal-content-txt">${escapeHtml(entry.content)}</p>
+          `;
+          journalListContainer.appendChild(card);
+        });
+      }
+
+      /* ----------------------------------------------------------------------
+         TAB 5: LOGIKA PENGATURAN
+         ---------------------------------------------------------------------- */
+      function setupSettingsTab() {
+        btnSaveName.addEventListener('click', () => {
+          const val = userNameInput.value.trim();
+          if (val) {
+            settings.userName = val;
+            saveSettings();
+            showSupportiveNotification(`Nama disimpan: ${val}`);
+          }
+        });
+
+        settingSoundToggle.addEventListener('change', (e) => {
+          settings.soundEnabled = e.target.checked;
+          saveSettings();
+          if (settings.soundEnabled) playChime();
+        });
+
+        settingLofiMuteToggle.addEventListener('change', (e) => {
+          settings.lofiMuted = e.target.checked;
+          saveSettings();
+          if (settings.lofiMuted && lofiIsPlaying) {
+            stopLofiMusic();
+            showSupportiveNotification('Musik Lo-Fi dimute');
+          }
+        });
+
+        btnExportData.addEventListener('click', () => {
+          const payload = { settings, tasks, journals, archives, focusStats };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `productivity-hub-backup-${new Date().toISOString().slice(0, 10)}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showSupportiveNotification('Cadangan berhasil diunduh');
+        });
+
+        btnClearAllData.addEventListener('click', () => {
+          if (confirm('Apakah Anda yakin ingin menghapus semua tugas, arsip, dan riwayat jurnal?')) {
+            tasks = [];
+            journals = [];
+            archives = [];
+            focusStats = { sessionsToday: 0, totalMinutes: 0, lastDate: new Date().toDateString() };
+            activeRecallTask = null;
+            saveTasks();
+            saveJournals();
+            saveArchives();
+            saveFocusStats();
+            saveActiveRecallState();
+            renderTasks();
+            renderJournals();
+            renderFocusStats();
+            renderBookshelf();
+            checkActiveRecallBanner();
+            showSupportiveNotification('Seluruh data berhasil dibersihkan');
+          }
+        });
+      }
+
+      /* ----------------------------------------------------------------------
+         Helper Utilities
+         ---------------------------------------------------------------------- */
+      function updateDateDisplay() {
+        headerDateStr.textContent = formatIndonesianDate(new Date());
+      }
+
+      function formatIndonesianDate(d) {
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
